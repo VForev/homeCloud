@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Image Gallery</title>
+    <script>
+        function showMessage(message) {
+            if (message) {
+                const msgDiv = document.getElementById('message');
+                msgDiv.innerText = message;
+                msgDiv.style.display = 'block';
+                setTimeout(() => { msgDiv.style.display = 'none'; }, 3000);
+            }
+        }
+    </script>
+</head>
+<body onload="showMessage('{{ message }}')">
+    <h1>Image Gallery</h1>
+    <div id="message" style="display: none; position: fixed; top: 10px; right: 10px; background: lightgreen; padding: 10px; border-radius: 5px;">{{ message }}</div>
+    <form action='/upload_image' method='post' enctype='multipart/form-data'>
+        <input type='file' name='images' multiple>
+        <button type='submit'>Upload Images</button>
+    </form>
+    <h2>Uploaded Images:</h2>
+    <form action='/download_images' method='post'>
+        {% for image in images %}
+            <div>
+                <input type='checkbox' name='selected_images' value='{{ image }}'>
+                <img src='/images/{{ image }}' alt='{{ image }}' width='200'>
+            </div>
+        {% endfor %}
+        <button type='submit'>Download Selected Images</button>
+    </form>
+</body>
+</html>

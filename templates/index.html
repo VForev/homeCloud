@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Home Server</title>
+</head>
+<body>
+    <h1>File Upload and Download</h1>
+    <form action='/upload' method='post' enctype='multipart/form-data'>
+        <input type='file' name='file'>
+        <button type='submit'>Upload</button>
+    </form>
+    <h2>Files:</h2>
+    <ul>
+        {% for file in files %}
+        <li><a href='/download/{{ file }}'>{{ file }}</a></li>
+        {% endfor %}
+    </ul>
+    <br>
+    <a href='/images'>View Images</a>
+</body>
+</html>
