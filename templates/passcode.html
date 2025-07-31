@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Server</title>
+    <title>Enter Passcode</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .top-bar {
             background: #1e1e1e;
-            padding: 24px 24px 16px 24px;
+            padding: 32px 24px 24px 24px;
             z-index: 100;
             border-radius: 7px;
             border: 1px solid #333;
@@ -16,22 +16,23 @@
             text-align: center;
             max-width: 400px;
         }
-        .buttons {
-            margin-top: 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .back-link {
+            color: #6c63ff;
+            text-decoration: underline;
+            display: inline-block;
+            margin-top: 18px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="top-bar">
-            <h1 style="margin-bottom: 8px;">Welcome to the File Server</h1>
-            <p style="color:#ccc;margin-bottom:18px;">Access and share your images easily.</p>
-            <div class="buttons">
-                <a href="{{ url_for('passcode') }}" class="btn">Go to Image Page</a>
-            </div>
+            <h2 style="margin-bottom:18px;">Enter Passcode</h2>
+            <form method="post">
+                <input type="password" name="code" placeholder="Enter passcode" required>
+                <button type="submit" class="btn" style="width:100%;margin-top:8px;">Submit</button>
+            </form>
+            <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
         </div>
     </div>
 </body>
