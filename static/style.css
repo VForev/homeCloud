@@ -125,3 +125,9 @@ input[type="file"] {
 #loadingOverlay {
   transition: opacity 0.3s;
 }
+
+/* Messages page extras */
+.message-card { background:#171717; border:1px solid #2a2a2a; border-radius:8px; padding:10px; }
+.message-meta { font-size:.85rem; color:#bdbdbd; margin-bottom:4px; }
+.message-text { color:#fff; line-height:1.35; white-space:pre-wrap; word-wrap:break-word; }
+

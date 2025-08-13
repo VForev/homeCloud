@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messages</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .top-bar {
+      background: #1e1e1e; padding:10px; z-index:100; border-radius:5px; border:1px solid #333; margin:auto;
+    }
+    #progressContainer { width:100%; background:#333; border-radius:5px; margin-top:10px; display:none; }
+    #progressBar { width:0%; height:10px; background:#6c63ff; border-radius:5px; transition: width 0.2s; }
+    .messages-grid {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+      gap:10px; margin-top:20px; max-height: calc(100vh - 180px); overflow-y:auto; padding-bottom:20px;
+    }
+    .message-card { background:#171717; border:1px solid #2a2a2a; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; min-height:90px; white-space:pre-wrap; word-wrap:break-word; }
+    .message-meta { font-size:0.85rem; color:#bdbdbd; }
+    .message-text { color:#fff; line-height:1.35; }
+    @media (max-width: 600px) {
+      .top-bar form { width:100% !important; max-width:100vw !important; overflow:hidden; }
+    }
+  </style>
+  <script>window.CAN_DELETE = {{ 'true' if can_delete else 'false' }};</script>
+</head>
+<body>
+  <div class="container">
+
+    <div class="top-bar">
+      <h1 style="text-align:center; margin-bottom:18px;">Messages</h1>
+
+      <form id="msgForm" style="display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:520px; margin:auto;">
+        <input type="text" id="author" name="author" placeholder="Your name (optional)">
+        <textarea id="text" name="text" rows="4" placeholder="Write a message..."
+          style="width:100%; padding:10px; border-radius:5px; border:none; background:#2c2c2c; color:#fff;"></textarea>
+
+        <div style="display:flex; gap:10px; width:100%;">
+          <button type="submit" class="btn" style="flex:1; font-size:1.05rem; padding:12px 0; margin:0;">Send</button>
+          <button id="clearBtn" type="button" class="btn secondary" style="width:160px;">Clear (admin)</button>
+        </div>
+
+        <div id="progressContainer" style="width:100%; margin-top:6px;">
+          <div id="progressBar"></div>
+        </div>
+      </form>
+
+      <div style="display:flex; justify-content:center;">
+        <a href="{{ url_for('logout') }}" class="btn secondary" style="margin-top:15px;">Logout</a>
+      </div>
+
+      <div style="text-align:center; margin-top:16px; color:#ccc;">
+        <p>Everyone with the passcode can read/post. Newest messages appear first.</p>
+      </div>
+    </div>
+
+    <div class="messages-grid" id="messagesGrid"></div>
+  </div>
+
+  <div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;">
+    <div class="spinner"></div>
+  </div>
+
+  <script>
+    const grid = document.getElementById('messagesGrid');
+    const form = document.getElementById('msgForm');
+    const clearBtn = document.getElementById('clearBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+
+    async function loadMessages() {
+      const res = await fetch('/api/messages');
+      if (!res.ok) {
+        grid.innerHTML = '<div class="message-card"><div class="message-text">Not authorized.</div></div>';
+        hideOverlay();
+        return;
+      }
+      const data = await res.json();
+      grid.innerHTML = '';
+      data.forEach((m) => {
+        const card = document.createElement('div');
+        card.className = 'message-card';
+
+        const meta = document.createElement('div');
+        meta.className = 'message-meta';
+        const when = new Date((m.ts || 0) * 1000);
+        const who = (m.author && m.author.trim()) ? m.author.trim() : 'Anonymous';
+        meta.textContent = `${who} • ${when.toLocaleString()}`;
+
+        const body = document.createElement('div');
+        body.className = 'message-text';
+        body.textContent = m.text || '';
+
+        card.appendChild(meta);
+        card.appendChild(body);
+
+        if (window.CAN_DELETE === true || window.CAN_DELETE === 'true') {
+          const del = document.createElement('button');
+          del.className = 'btn secondary';
+          del.textContent = 'Delete';
+          del.style.marginTop = '8px';
+          del.addEventListener('click', async () => {
+            if (!confirm('Delete this message?')) return;
+            const r = await fetch('/api/messages/delete', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({ id: m.id })
+            });
+            if (r.ok) loadMessages();
+            else {
+              const err = await r.json().catch(() => ({}));
+              alert(err.msg || 'Failed to delete.');
+            }
+          });
+          card.appendChild(del);
+        }
+
+        grid.appendChild(card);
+      });
+      hideOverlay();
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const author = document.getElementById('author').value.trim();
+      const text = document.getElementById('text').value.trim();
+      if (!text) return;
+
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '25%';
+
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ author, text })
+      });
+
+      if (res.ok) {
+        progressBar.style.width = '80%';
+        document.getElementById('text').value = '';
+        await loadMessages();
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+          progressBar.style.width = '0%';
+          progressContainer.style.display = 'none';
+        }, 300);
+      } else {
+        alert('Failed to post message');
+        progressBar.style.width = '0%';
+        progressContainer.style.display = 'none';
+      }
+    });
+
+    clearBtn.addEventListener('click', async () => {
+      if (!confirm('Clear all messages? (admin only)')) return;
+      const r = await fetch('/api/messages/clear', { method:'POST' });
+      if (r.ok) loadMessages();
+      else alert('Not authorized or failed.');
+    });
+
+    function hideOverlay() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (!overlay) return;
+      overlay.style.opacity = '0';
+      setTimeout(() => { overlay.style.display = 'none'; }, 320);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMessages();
+      setInterval(loadMessages, 5000);
+    });
+  </script>
+</body>
+</html>
