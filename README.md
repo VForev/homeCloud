@@ -329,16 +329,4 @@ Self-hosted infrastructure & software experimentation
 
 ---
 
-```
-
----
-
-If you want next, I can:
-- Add **auth/login** to HomeCloud
-- Convert uploads to **hashed directories**
-- Lock access behind **VPN only**
-- Split HomeCloud onto `home.vforeproductions.com`
-- Add **rate limiting & security headers**
-
-Just tell me 👍
-::contentReference[oaicite:0]{index=0}
+https://chatgpt.com/share/697b2200-a5b0-800e-b105-36f67d818fd2
