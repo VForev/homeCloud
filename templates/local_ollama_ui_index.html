@@ -84,7 +84,7 @@
       font: inherit;
     }
 
-    .select, .textarea {
+    .select, .textarea, .number-input {
       border: 1px solid var(--line);
       background: var(--panel-2);
       color: var(--text);
@@ -92,8 +92,12 @@
       outline: none;
     }
 
-    .select {
+    .select, .number-input {
       padding: 10px 12px;
+      min-width: 120px;
+    }
+
+    .select {
       min-width: 220px;
     }
 
@@ -146,6 +150,69 @@
     .assistant .bubble { background: rgba(255,255,255,0.04); }
     .system .bubble { background: rgba(255,140,140,0.10); }
 
+    .bubble h1, .bubble h2, .bubble h3 {
+      margin: 0 0 12px;
+      line-height: 1.3;
+    }
+
+    .bubble p {
+      margin: 0 0 12px;
+    }
+
+    .bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .bubble ul, .bubble ol {
+      margin: 6px 0 12px 22px;
+      padding: 0;
+    }
+
+    .bubble code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 7px;
+      font-size: 0.95em;
+    }
+
+    .bubble pre {
+      margin: 14px 0;
+      background: rgba(0,0,0,0.28);
+      padding: 14px;
+      border-radius: 14px;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .bubble pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    .assistant-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-left: 4px;
+    }
+
+    .chip-btn {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+
+    .chip-btn:hover {
+      color: var(--text);
+      border-color: rgba(124, 156, 255, 0.28);
+    }
+
     .composer {
       border-top: 1px solid var(--line);
       padding: 14px;
@@ -169,6 +236,40 @@
       padding: 8px 10px;
       border-radius: 999px;
       background: rgba(255,255,255,0.03);
+    }
+
+    .image-preview-wrap {
+      display: none;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .image-preview-wrap.show {
+      display: flex;
+    }
+
+    .image-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      flex: 0 0 auto;
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-meta {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
     }
 
     .composer-row {
@@ -220,40 +321,6 @@
 
     .hidden { display: none !important; }
 
-    .image-preview-wrap {
-      display: none;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .image-preview-wrap.show {
-      display: flex;
-    }
-
-    .image-preview {
-      width: 120px;
-      height: 120px;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.03);
-      flex: 0 0 auto;
-    }
-
-    .image-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .image-meta {
-      color: var(--muted);
-      font-size: 0.88rem;
-      line-height: 1.5;
-    }
-
     @media (max-width: 720px) {
       .app {
         height: 100vh;
@@ -274,6 +341,7 @@
       .buttons .btn { flex: 1; }
 
       .select { min-width: 0; width: 100%; }
+      .number-input { min-width: 0; width: 100px; }
     }
   </style>
 </head>
@@ -286,6 +354,8 @@
       </div>
       <div class="controls">
         <select id="model" class="select"></select>
+        <input id="temperature" class="number-input" type="number" min="0" max="2" step="0.1" value="0.7" title="Temperature" />
+        <input id="numPredict" class="number-input" type="number" min="64" max="4096" step="64" value="512" title="Max tokens" />
         <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
         <button id="clearBtn" class="btn danger" type="button">Clear</button>
       </div>
@@ -341,6 +411,8 @@
     const el = {
       status: document.getElementById('status'),
       model: document.getElementById('model'),
+      temperature: document.getElementById('temperature'),
+      numPredict: document.getElementById('numPredict'),
       refreshBtn: document.getElementById('refreshBtn'),
       clearBtn: document.getElementById('clearBtn'),
       chat: document.getElementById('chat'),
@@ -361,10 +433,115 @@
     }
 
     function escapeHtml(text) {
-      return String(text)
+      return String(text ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+    }
+
+    function renderMarkdown(text) {
+      const escaped = escapeHtml(text);
+      const codeBlocks = [];
+      let temp = escaped.replace(/```([\s\S]*?)```/g, (_, code) => {
+        const key = `__CODEBLOCK_${codeBlocks.length}__`;
+        codeBlocks.push(`<pre><code>${code.trim()}</code></pre>`);
+        return key;
+      });
+
+      temp = temp
+        .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      const lines = temp.split('\n');
+      const html = [];
+      let inUl = false;
+      let inOl = false;
+
+      function closeLists() {
+        if (inUl) {
+          html.push('</ul>');
+          inUl = false;
+        }
+        if (inOl) {
+          html.push('</ol>');
+          inOl = false;
+        }
+      }
+
+      for (const line of lines) {
+        if (/^[-*]\s+/.test(line)) {
+          if (inOl) {
+            html.push('</ol>');
+            inOl = false;
+          }
+          if (!inUl) {
+            html.push('<ul>');
+            inUl = true;
+          }
+          html.push(`<li>${line.replace(/^[-*]\s+/, '')}</li>`);
+        } else if (/^\d+\.\s+/.test(line)) {
+          if (inUl) {
+            html.push('</ul>');
+            inUl = false;
+          }
+          if (!inOl) {
+            html.push('<ol>');
+            inOl = true;
+          }
+          html.push(`<li>${line.replace(/^\d+\.\s+/, '')}</li>`);
+        } else {
+          closeLists();
+          if (line.trim() === '') {
+            html.push('');
+          } else if (/^<h[1-3]>/.test(line) || /^<pre>/.test(line)) {
+            html.push(line);
+          } else {
+            html.push(`<p>${line}</p>`);
+          }
+        }
+      }
+      closeLists();
+
+      let finalHtml = html.join('');
+      codeBlocks.forEach((block, index) => {
+        finalHtml = finalHtml.replace(`__CODEBLOCK_${index}__`, block);
+      });
+      return finalHtml;
+    }
+
+    function createAssistantActions(messageText) {
+      const actions = document.createElement('div');
+      actions.className = 'assistant-actions';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'chip-btn';
+      copyBtn.type = 'button';
+      copyBtn.textContent = 'Copy';
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(messageText);
+          setStatus('Copied response');
+        } catch (error) {
+          setStatus('Copy failed');
+        }
+      });
+
+      const reuseBtn = document.createElement('button');
+      reuseBtn.className = 'chip-btn';
+      reuseBtn.type = 'button';
+      reuseBtn.textContent = 'Use as prompt';
+      reuseBtn.addEventListener('click', () => {
+        el.prompt.value = messageText;
+        el.prompt.focus();
+        setStatus('Response copied into prompt box');
+      });
+
+      actions.append(copyBtn, reuseBtn);
+      return actions;
     }
 
     function renderMessages() {
@@ -385,10 +562,19 @@
 
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
-        bubble.innerHTML = escapeHtml(message.content);
+        if (message.role === 'assistant') {
+          bubble.innerHTML = renderMarkdown(message.content);
+        } else {
+          bubble.textContent = message.content;
+        }
 
         wrapper.appendChild(role);
         wrapper.appendChild(bubble);
+
+        if (message.role === 'assistant') {
+          wrapper.appendChild(createAssistantActions(message.content));
+        }
+
         el.chat.appendChild(wrapper);
       }
 
@@ -441,7 +627,7 @@
       if (state.models.includes(current)) {
         el.model.value = current;
       } else {
-        const preferred = state.models.find(name => name.includes('qwen3.5:27b')) || state.models[0];
+        const preferred = state.models.find(name => name.includes('qwen3-vl')) || state.models[0];
         el.model.value = preferred;
       }
     }
@@ -449,7 +635,7 @@
     async function loadModels() {
       setStatus('Loading models...');
       try {
-        const response = await fetch('/api/ollama/api/tags');
+        const response = await fetch('/api/ollama/api/tags', { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         state.models = (data.models || []).map(model => model.name);
@@ -539,8 +725,8 @@
             stream: false,
             messages: payloadMessages,
             options: {
-              temperature: 0.7,
-              num_predict: 512
+              temperature: Number(el.temperature.value || 0.7),
+              num_predict: Number(el.numPredict.value || 512)
             }
           })
         });
