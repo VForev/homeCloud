@@ -3,339 +3,158 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VFore AI</title>
+  <title>VFore AI Minimal</title>
   <style>
     :root {
       --bg: #0b1020;
-      --panel: rgba(20, 28, 48, 0.82);
-      --panel-2: rgba(30, 41, 67, 0.72);
-      --line: rgba(255, 255, 255, 0.08);
+      --panel: #121a30;
+      --panel-2: #1a2542;
+      --line: rgba(255,255,255,0.08);
       --text: #eef2ff;
       --muted: #aab4d6;
       --accent: #7c9cff;
-      --accent-2: #9a7cff;
-      --danger: #ff7a7a;
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-      --radius: 22px;
+      --danger: #ff8c8c;
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
-      padding: 0;
-      min-height: 100%;
-      background:
-        radial-gradient(circle at top left, rgba(124, 156, 255, 0.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(154, 124, 255, 0.15), transparent 24%),
-        linear-gradient(180deg, #09101f 0%, #0c1326 100%);
+      height: 100%;
+      background: linear-gradient(180deg, #0a1020 0%, #0e1530 100%);
       color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     body {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 18px;
-      padding: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
     }
 
-    .sidebar,
-    .main {
+    .app {
+      width: min(100%, 980px);
+      height: min(92vh, 900px);
       border: 1px solid var(--line);
       background: var(--panel);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-    }
-
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 36px);
+      border-radius: 22px;
       overflow: hidden;
-    }
-
-    .brand {
-      padding: 22px 20px 16px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 1.25rem;
-      letter-spacing: 0.02em;
-    }
-
-    .brand p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.45;
-    }
-
-    .sidebar-section {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .label {
-      display: block;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    input,
-    select,
-    textarea,
-    button {
-      font: inherit;
-    }
-
-    .input,
-    .select,
-    .textarea {
-      width: 100%;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: var(--panel-2);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 12px 14px;
-      outline: none;
-      transition: 0.18s ease;
-    }
-
-    .input:focus,
-    .select:focus,
-    .textarea:focus {
-      border-color: rgba(124,156,255,0.6);
-      box-shadow: 0 0 0 4px rgba(124,156,255,0.12);
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .btn {
-      border: 0;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      border-radius: 14px;
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: transform 0.14s ease, opacity 0.14s ease;
-      font-weight: 600;
-    }
-
-    .btn:hover { transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    .btn.secondary {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .btn.danger {
-      background: rgba(255, 122, 122, 0.12);
-      color: #ffd7d7;
-      border: 1px solid rgba(255, 122, 122, 0.18);
-    }
-
-    .history {
-      padding: 14px;
-      overflow: auto;
-      flex: 1;
-    }
-
-    .history-item {
-      border: 1px solid rgba(255,255,255,0.07);
-      background: rgba(255,255,255,0.03);
-      border-radius: 16px;
-      padding: 12px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: 0.18s ease;
-    }
-
-    .history-item:hover,
-    .history-item.active {
-      border-color: rgba(124,156,255,0.4);
-      background: rgba(124,156,255,0.08);
-    }
-
-    .history-item-title {
-      font-weight: 600;
-      font-size: 0.96rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .history-item-meta {
-      margin-top: 6px;
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-
-    .main {
-      min-height: calc(100vh - 36px);
       display: grid;
       grid-template-rows: auto 1fr auto;
-      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
       align-items: center;
-      padding: 18px 22px;
+      gap: 12px;
+      padding: 16px 18px;
       border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      flex-wrap: wrap;
     }
 
-    .topbar h2 {
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand h1 {
       margin: 0;
       font-size: 1.05rem;
     }
 
     .status {
       color: var(--muted);
-      font-size: 0.92rem;
+      font-size: 0.9rem;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    select, textarea, button, input {
+      font: inherit;
+    }
+
+    .select, .textarea {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 12px;
+      outline: none;
+    }
+
+    .select {
+      padding: 10px 12px;
+      min-width: 220px;
     }
 
     .chat {
       overflow: auto;
-      padding: 24px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
+      background: rgba(255,255,255,0.01);
     }
 
     .empty {
       margin: auto;
-      max-width: 780px;
-      width: 100%;
       text-align: center;
-      padding: 28px;
-      border: 1px dashed rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.025);
-      border-radius: 24px;
-    }
-
-    .empty h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 1.4rem;
-    }
-
-    .empty p {
       color: var(--muted);
-      line-height: 1.65;
-      margin: 0;
+      max-width: 520px;
+      line-height: 1.6;
     }
 
-    .message {
-      max-width: 900px;
-      display: grid;
-      gap: 8px;
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 90%;
     }
 
-    .message.user { align-self: flex-end; }
-    .message.assistant { align-self: flex-start; }
+    .msg.user { align-self: flex-end; }
+    .msg.assistant { align-self: flex-start; }
+    .msg.system { align-self: center; max-width: 100%; }
 
-    .message-role {
-      color: var(--muted);
-      font-size: 0.8rem;
-      text-transform: uppercase;
+    .role {
+      font-size: 0.75rem;
       letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
       padding: 0 4px;
     }
 
     .bubble {
-      border-radius: 22px;
-      padding: 16px 18px;
-      line-height: 1.65;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-      border: 1px solid rgba(255,255,255,0.08);
+      line-height: 1.6;
     }
 
-    .user .bubble {
-      background: linear-gradient(135deg, rgba(124,156,255,0.22), rgba(154,124,255,0.15));
-    }
-
-    .assistant .bubble {
-      background: rgba(255,255,255,0.04);
-    }
-
-    .assistant .bubble code,
-    .assistant .bubble pre {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    .assistant .bubble pre {
-      margin: 14px 0;
-      padding: 14px;
-      background: rgba(0,0,0,0.28);
-      border-radius: 14px;
-      overflow: auto;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .image-preview {
-      max-width: 520px;
-      margin-top: 8px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(0,0,0,0.12);
-    }
-
-    .image-preview img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .image-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-
-    .assistant .bubble p { margin: 0 0 12px; }
-    .assistant .bubble p:last-child { margin-bottom: 0; }
-    .assistant .bubble ul,
-    .assistant .bubble ol { margin: 8px 0 12px 22px; }
+    .user .bubble { background: rgba(124,156,255,0.18); }
+    .assistant .bubble { background: rgba(255,255,255,0.04); }
+    .system .bubble { background: rgba(255,140,140,0.10); }
 
     .composer {
       border-top: 1px solid var(--line);
-      padding: 18px;
+      padding: 14px;
       display: grid;
       gap: 12px;
-      background: rgba(9, 16, 31, 0.6);
+      background: rgba(255,255,255,0.02);
     }
 
-    .composer-box {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      align-items: end;
-    }
-
-    .textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .composer-actions {
+    .file-row {
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -343,518 +162,479 @@
       flex-wrap: wrap;
     }
 
+    .file-pill {
+      color: var(--muted);
+      font-size: 0.9rem;
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .composer-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .textarea {
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      padding: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      color: white;
+      background: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .btn.danger {
+      background: rgba(255,140,140,0.16);
+      border: 1px solid rgba(255,140,140,0.25);
+      color: #ffdede;
+    }
+
     .hint {
       color: var(--muted);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
     }
 
-    .token-settings {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 12px;
+    .hidden { display: none !important; }
+
+    .image-preview-wrap {
+      display: none;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
-    .footer-note {
-      padding: 12px 20px 18px;
+    .image-preview-wrap.show {
+      display: flex;
+    }
+
+    .image-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      flex: 0 0 auto;
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-meta {
       color: var(--muted);
-      font-size: 0.82rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
     }
 
-    @media (max-width: 980px) {
-      body {
+    @media (max-width: 720px) {
+      .app {
+        height: 100vh;
+        width: 100%;
+        border-radius: 0;
+      }
+
+      body { padding: 0; }
+
+      .composer-row {
         grid-template-columns: 1fr;
       }
 
-      .sidebar,
-      .main {
-        min-height: auto;
+      .buttons {
+        flex-direction: row;
       }
 
-      .sidebar {
-        min-height: 0;
-      }
+      .buttons .btn { flex: 1; }
+
+      .select { min-width: 0; width: 100%; }
     }
   </style>
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="brand">
-      <h1>VFore AI</h1>
-      <p>Local AI chat UI for Ollama. Runs entirely on your Linux machine and can later sit behind your domain.</p>
-    </div>
-
-    <div class="sidebar-section">
-      <label class="label" for="model">Model</label>
-      <div class="row">
-        <select id="model" class="select"></select>
-        <button id="refreshModelsBtn" class="btn secondary" type="button">Refresh</button>
-      </div>
-
-      <div class="token-settings">
-        <div>
-          <label class="label" for="temperature">Temperature</label>
-          <input id="temperature" class="input" type="number" min="0" max="2" step="0.1" value="0.7" />
-        </div>
-        <div>
-          <label class="label" for="numPredict">Max tokens</label>
-          <input id="numPredict" class="input" type="number" min="64" max="8192" step="64" value="1024" />
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label class="label" for="responseType">Response type</label>
-        <select id="responseType" class="select">
-          <option value="text">Text (default)</option>
-          <option value="image">Prefer image output</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="row" style="justify-content: space-between; margin-bottom: 10px;">
-        <span class="label" style="margin: 0;">Chats</span>
-        <button id="newChatBtn" class="btn" type="button">New Chat</button>
-      </div>
-      <div class="row">
-        <button id="clearCurrentBtn" class="btn danger" type="button" style="width: 100%;">Delete Current Chat</button>
-      </div>
-    </div>
-
-    <div id="history" class="history"></div>
-
-    <div class="footer-note">
-      Uses localStorage for chat history and an Nginx reverse proxy for Ollama API requests.
-    </div>
-  </aside>
-
-  <main class="main">
+  <div class="app">
     <div class="topbar">
-      <div>
-        <h2 id="chatTitle">New Chat</h2>
-        <div class="status" id="status">Ready</div>
+      <div class="brand">
+        <h1>VFore AI Minimal</h1>
+        <div id="status" class="status">Loading models...</div>
       </div>
-      <div class="status">API: <code>/api/ollama</code></div>
+      <div class="controls">
+        <select id="model" class="select"></select>
+        <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
+        <button id="clearBtn" class="btn danger" type="button">Clear</button>
+      </div>
     </div>
 
-    <section id="chat" class="chat">
-      <div class="empty" id="emptyState">
-        <h3>Your local AI is ready</h3>
-        <p>Pick a model, type a prompt, and this UI will send the request to Ollama through the local reverse proxy. No external API is required.</p>
+    <div id="chat" class="chat">
+      <div id="empty" class="empty">
+        Pick a model, type a message, and send it. You can also attach one image. This version is intentionally minimal and uses non-streaming chat for reliability.
       </div>
-    </section>
+    </div>
 
     <form id="composer" class="composer">
-      <div class="composer-box">
-        <textarea id="prompt" class="textarea" placeholder="Ask your local model anything..."></textarea>
-        <button id="sendBtn" class="btn" type="submit">Send</button>
-      </div>
-      <div class="composer-actions">
-        <div class="hint">Enter to send. Shift+Enter for a new line.</div>
-        <div class="row">
-          <button id="stopBtn" class="btn secondary" type="button">Stop</button>
+      <div class="file-row">
+        <div id="fileInfo" class="file-pill hidden"></div>
+        <div>
+          <label for="imageInput" class="btn secondary" style="display:inline-block;">Upload Image</label>
+          <input id="imageInput" class="hidden" type="file" accept="image/*" />
         </div>
       </div>
+
+      <div id="imagePreviewWrap" class="image-preview-wrap">
+        <div class="image-preview">
+          <img id="imagePreview" alt="Selected image preview" />
+        </div>
+        <div class="image-meta" id="imageMeta"></div>
+      </div>
+
+      <div class="composer-row">
+        <textarea id="prompt" class="textarea" placeholder="Ask something..."></textarea>
+        <div class="buttons">
+          <button id="sendBtn" class="btn" type="submit">Send</button>
+          <button id="removeImageBtn" class="btn secondary hidden" type="button">Remove Image</button>
+        </div>
+      </div>
+
+      <div class="hint">Enter to send. Shift+Enter for a new line.</div>
     </form>
-  </main>
+  </div>
 
   <script>
-  const STORAGE_KEY = 'vfore_ai_chats_v2';
-  const STATE = {
-    chats: [],
-    currentChatId: null,
-    abortController: null,
-    models: []
-  };
-
-  const elements = {
-    model: document.getElementById('model'),
-    temperature: document.getElementById('temperature'),
-    numPredict: document.getElementById('numPredict'),
-    history: document.getElementById('history'),
-    chat: document.getElementById('chat'),
-    chatTitle: document.getElementById('chatTitle'),
-    status: document.getElementById('status'),
-    prompt: document.getElementById('prompt'),
-    sendBtn: document.getElementById('sendBtn'),
-    stopBtn: document.getElementById('stopBtn'),
-    composer: document.getElementById('composer'),
-    newChatBtn: document.getElementById('newChatBtn'),
-    clearCurrentBtn: document.getElementById('clearCurrentBtn'),
-    refreshModelsBtn: document.getElementById('refreshModelsBtn'),
-    responseType: document.getElementById('responseType'),
-    emptyState: document.getElementById('emptyState')
-  };
-
-  function uid() {
-    return Math.random().toString(36).slice(2) + Date.now().toString(36);
-  }
-
-  function nowLabel() {
-    return new Date().toLocaleString();
-  }
-
-  function saveChats() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      chats: STATE.chats,
-      currentChatId: STATE.currentChatId
-    }));
-  }
-
-  function loadChats() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      STATE.chats = Array.isArray(parsed.chats) ? parsed.chats : [];
-      STATE.currentChatId = parsed.currentChatId || STATE.chats[0]?.id || null;
-    } catch (error) {
-      console.error('Failed to load chats', error);
-    }
-  }
-
-  function createChat() {
-    const chat = {
-      id: uid(),
-      title: 'New Chat',
-      createdAt: nowLabel(),
-      updatedAt: nowLabel(),
-      messages: []
+    const state = {
+      messages: [],
+      models: [],
+      imageBase64: null,
+      imageMime: null,
+      imageName: null,
+      imagePreviewUrl: null,
+      imageWidth: null,
+      imageHeight: null,
+      busy: false
     };
-    STATE.chats.unshift(chat);
-    STATE.currentChatId = chat.id;
-    saveChats();
-    render();
-    return chat;
-  }
 
-  function getCurrentChat() {
-    return STATE.chats.find(chat => chat.id === STATE.currentChatId) || null;
-  }
+    const el = {
+      status: document.getElementById('status'),
+      model: document.getElementById('model'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      chat: document.getElementById('chat'),
+      empty: document.getElementById('empty'),
+      composer: document.getElementById('composer'),
+      prompt: document.getElementById('prompt'),
+      sendBtn: document.getElementById('sendBtn'),
+      imageInput: document.getElementById('imageInput'),
+      fileInfo: document.getElementById('fileInfo'),
+      removeImageBtn: document.getElementById('removeImageBtn'),
+      imagePreviewWrap: document.getElementById('imagePreviewWrap'),
+      imagePreview: document.getElementById('imagePreview'),
+      imageMeta: document.getElementById('imageMeta')
+    };
 
-  function deleteCurrentChat() {
-    if (!STATE.currentChatId) return;
-    STATE.chats = STATE.chats.filter(chat => chat.id !== STATE.currentChatId);
-    STATE.currentChatId = STATE.chats[0]?.id || null;
-    if (!STATE.currentChatId) createChat();
-    saveChats();
-    render();
-  }
+    function setStatus(text) {
+      el.status.textContent = text;
+    }
 
-  function setStatus(text) {
-    elements.status.textContent = text;
-  }
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
 
-  function escapeHtml(text) {
-    return String(text ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-  }
+    function renderMessages() {
+      el.chat.innerHTML = '';
 
-  function renderMarkdown(text) {
-    const escaped = escapeHtml(text);
-    const codeBlocks = [];
-    let temp = escaped.replace(/```([\s\S]*?)```/g, (_, code) => {
-      const key = `__CODEBLOCK_${codeBlocks.length}__`;
-      codeBlocks.push(`<pre><code>${code.trim()}</code></pre>`);
-      return key;
-    });
+      if (!state.messages.length) {
+        el.chat.appendChild(el.empty);
+        return;
+      }
 
-    temp = temp
-      .replace(/^### (.*)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.*)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.*)$/gm, '<h1>$1</h1>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>');
+      for (const message of state.messages) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg ${message.role}`;
 
-    const lines = temp.split('\n');
-    let inList = false;
-    const html = [];
+        const role = document.createElement('div');
+        role.className = 'role';
+        role.textContent = message.role;
 
-    for (const line of lines) {
-      if (/^[-*]\s+/.test(line)) {
-        if (!inList) {
-          html.push('<ul>');
-          inList = true;
-        }
-        html.push(`<li>${line.replace(/^[-*]\s+/, '')}</li>`);
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerHTML = escapeHtml(message.content);
+
+        wrapper.appendChild(role);
+        wrapper.appendChild(bubble);
+        el.chat.appendChild(wrapper);
+      }
+
+      el.chat.scrollTop = el.chat.scrollHeight;
+    }
+
+    function renderImageInfo() {
+      if (!state.imageBase64) {
+        el.fileInfo.classList.add('hidden');
+        el.removeImageBtn.classList.add('hidden');
+        el.imagePreviewWrap.classList.remove('show');
+        el.fileInfo.textContent = '';
+        el.imageMeta.textContent = '';
+        el.imagePreview.removeAttribute('src');
+        return;
+      }
+
+      el.fileInfo.classList.remove('hidden');
+      el.removeImageBtn.classList.remove('hidden');
+      el.imagePreviewWrap.classList.add('show');
+      el.fileInfo.textContent = `Image attached: ${state.imageName}`;
+      el.imagePreview.src = state.imagePreviewUrl || '';
+
+      const approxKb = Math.max(1, Math.round((state.imageBase64.length * 3 / 4) / 1024));
+      const dims = state.imageWidth && state.imageHeight
+        ? `${state.imageWidth}×${state.imageHeight}px`
+        : 'resized image';
+      el.imageMeta.textContent = `${dims} • ~${approxKb} KB sent to model`;
+    }
+
+    function renderModels() {
+      const current = el.model.value;
+      el.model.innerHTML = '';
+
+      if (!state.models.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No models found';
+        el.model.appendChild(option);
+        return;
+      }
+
+      for (const model of state.models) {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        el.model.appendChild(option);
+      }
+
+      if (state.models.includes(current)) {
+        el.model.value = current;
       } else {
-        if (inList) {
-          html.push('</ul>');
-          inList = false;
-        }
-        if (line.trim() === '') {
-          html.push('');
-        } else if (/^<h[1-3]>/.test(line) || /^<pre>/.test(line)) {
-          html.push(line);
-        } else {
-          html.push(`<p>${line}</p>`);
-        }
+        const preferred = state.models.find(name => name.includes('qwen3.5:27b')) || state.models[0];
+        el.model.value = preferred;
       }
     }
-    if (inList) html.push('</ul>');
 
-    let finalHtml = html.join('');
-    codeBlocks.forEach((block, index) => {
-      finalHtml = finalHtml.replace(`__CODEBLOCK_${index}__`, block);
-    });
-    return finalHtml;
-  }
-
-  function renderAssistantContent(content) {
-    if (!content) return '<p>No response received.</p>';
-
-    try {
-      const parsed = JSON.parse(content);
-      if (parsed.image_base64) {
-        const src = `data:image/png;base64,${parsed.image_base64}`;
-        return `<div><div class="image-preview"><img src="${src}" alt="generated image"/></div><div class="image-actions"><a class="btn" href="${src}" download="image.png">Download</a></div></div>`;
+    async function loadModels() {
+      setStatus('Loading models...');
+      try {
+        const response = await fetch('/api/ollama/api/tags');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        state.models = (data.models || []).map(model => model.name);
+        renderModels();
+        setStatus(`Ready • ${state.models.length} model${state.models.length === 1 ? '' : 's'}`);
+      } catch (error) {
+        setStatus(`Could not load models: ${error.message}`);
       }
-      if (parsed.image_url) {
-        const src = parsed.image_url;
-        return `<div><div class="image-preview"><img src="${src}" alt="generated image"/></div><div class="image-actions"><a class="btn" href="${src}" target="_blank" rel="noopener">Open</a></div></div>`;
-      }
-    } catch (error) {
     }
 
-    const dataUriMatch = String(content).match(/(data:image\/[a-zA-Z+]+;base64,[A-Za-z0-9+/=\n]+)/);
-    if (dataUriMatch) {
-      const src = dataUriMatch[1];
-      return `<div><div class="image-preview"><img src="${src}" alt="generated image"/></div><div class="image-actions"><a class="btn" href="${src}" download="image.png">Download</a></div></div>`;
-    }
-
-    const urlMatch = String(content).match(/https?:\/\/[^\s)]+\.(?:png|jpe?g|webp|gif)/i);
-    if (urlMatch) {
-      const src = urlMatch[0];
-      return `<div><div class="image-preview"><img src="${src}" alt="generated image"/></div><div class="image-actions"><a class="btn" href="${src}" target="_blank" rel="noopener">Open</a></div></div>`;
-    }
-
-    return renderMarkdown(content);
-  }
-
-  function renderHistory() {
-    elements.history.innerHTML = '';
-    for (const chat of STATE.chats) {
-      const item = document.createElement('div');
-      item.className = `history-item ${chat.id === STATE.currentChatId ? 'active' : ''}`;
-      item.innerHTML = `
-        <div class="history-item-title">${escapeHtml(chat.title)}</div>
-        <div class="history-item-meta">${escapeHtml(chat.updatedAt)}</div>
-      `;
-      item.addEventListener('click', () => {
-        STATE.currentChatId = chat.id;
-        saveChats();
-        render();
+    function loadImageElement(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => resolve({ img, dataUrl: String(reader.result || '') });
+          img.onerror = reject;
+          img.src = String(reader.result || '');
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-      elements.history.appendChild(item);
-    }
-  }
-
-  function renderChat() {
-    const chat = getCurrentChat();
-    elements.chat.innerHTML = '';
-
-    if (!chat || chat.messages.length === 0) {
-      elements.chat.appendChild(elements.emptyState);
-      elements.chatTitle.textContent = chat?.title || 'New Chat';
-      return;
     }
 
-    elements.chatTitle.textContent = chat.title;
+    async function imageFileToOptimizedBase64(file) {
+      const { img, dataUrl } = await loadImageElement(file);
+      const maxSide = 1024;
+      let width = img.width;
+      let height = img.height;
 
-    for (const message of chat.messages) {
-      const wrapper = document.createElement('div');
-      wrapper.className = `message ${message.role}`;
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-
-      if (message.role === 'assistant') {
-        bubble.innerHTML = renderAssistantContent(message.content);
-      } else {
-        bubble.textContent = message.content;
+      if (width > height && width > maxSide) {
+        height = Math.round((height * maxSide) / width);
+        width = maxSide;
+      } else if (height >= width && height > maxSide) {
+        width = Math.round((width * maxSide) / height);
+        height = maxSide;
       }
 
-      wrapper.innerHTML = `<div class="message-role">${message.role}</div>`;
-      wrapper.appendChild(bubble);
-      elements.chat.appendChild(wrapper);
-    }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
 
-    elements.chat.scrollTop = elements.chat.scrollHeight;
-  }
-
-  function renderModels() {
-    const current = elements.model.value;
-    elements.model.innerHTML = '';
-
-    if (!STATE.models.length) {
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = 'No models found';
-      elements.model.appendChild(option);
-      return;
-    }
-
-    for (const model of STATE.models) {
-      const option = document.createElement('option');
-      option.value = model;
-      option.textContent = model;
-      elements.model.appendChild(option);
-    }
-
-    const preferred = STATE.models.includes(current)
-      ? current
-      : (STATE.models.find(name => name.includes('qwen3-vl')) || STATE.models[0]);
-
-    elements.model.value = preferred;
-  }
-
-  function render() {
-    renderHistory();
-    renderModels();
-    renderChat();
-  }
-
-  async function fetchModels() {
-    setStatus('Loading models...');
-    try {
-      const response = await fetch('/api/ollama/api/tags', {
-        method: 'GET',
-        cache: 'no-store',
-        credentials: 'same-origin'
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-      console.log('Loaded models:', data);
-
-      STATE.models = (data.models || [])
-        .map(model => model.name)
-        .filter(Boolean);
-
-      renderModels();
-      setStatus(`Loaded ${STATE.models.length} model${STATE.models.length === 1 ? '' : 's'}`);
-    } catch (error) {
-      console.error('Model load failed:', error);
-      setStatus(`Could not load models: ${error.message}`);
-    }
-  }
-
-  async function sendMessage(promptText) {
-    let chat = getCurrentChat();
-    if (!chat) chat = createChat();
-
-    const model = elements.model.value;
-    if (!model) {
-      setStatus('No model selected');
-      return;
-    }
-
-    chat.messages.push({ role: 'user', content: promptText });
-    if (chat.title === 'New Chat') {
-      chat.title = promptText.slice(0, 38) || 'New Chat';
-    }
-    chat.updatedAt = nowLabel();
-    saveChats();
-    renderChat();
-
-    const assistantMessage = { role: 'assistant', content: 'Thinking...' };
-    chat.messages.push(assistantMessage);
-    saveChats();
-    renderChat();
-
-    elements.sendBtn.disabled = true;
-    STATE.abortController = new AbortController();
-    setStatus(`Running ${model}...`);
-
-    try {
-      const requestBody = {
-        model,
-        stream: false,
-        messages: chat.messages
-          .filter(message => message !== assistantMessage)
-          .map(({ role, content }) => ({ role, content })),
-        options: {
-          temperature: Number(elements.temperature.value || 0.7),
-          num_predict: Number(elements.numPredict.value || 1024)
-        }
+      const outDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      const commaIndex = outDataUrl.indexOf(',');
+      return {
+        base64: commaIndex >= 0 ? outDataUrl.slice(commaIndex + 1) : outDataUrl,
+        previewUrl: dataUrl,
+        width,
+        height,
+        mime: 'image/jpeg'
       };
+    }
 
-      const response = await fetch('/api/ollama/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: STATE.abortController.signal,
-        body: JSON.stringify(requestBody)
-      });
+    async function sendMessage(promptText) {
+      if (state.busy) return;
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `HTTP ${response.status}`);
+      const model = el.model.value;
+      if (!model) {
+        setStatus('No model selected');
+        return;
       }
 
-      const data = await response.json();
-      console.log('Chat response:', data);
+      state.busy = true;
+      el.sendBtn.disabled = true;
+      setStatus(`Running ${model}...`);
 
-      const answer =
-        data?.message?.content ||
-        data?.response ||
-        data?.message?.thinking ||
-        '';
+      state.messages.push({ role: 'user', content: promptText });
+      renderMessages();
 
-      assistantMessage.content = answer || 'No response received.';
-      chat.updatedAt = nowLabel();
-      saveChats();
-      render();
-      setStatus('Ready');
-    } catch (error) {
-      assistantMessage.content = `Request failed.\n\n${error.message}`;
-      saveChats();
-      renderChat();
-      setStatus(error.name === 'AbortError' ? 'Stopped' : 'Request failed');
-    } finally {
-      elements.sendBtn.disabled = false;
-      STATE.abortController = null;
+      const payloadMessages = state.messages.map(message => ({
+        role: message.role,
+        content: message.content
+      }));
+
+      if (state.imageBase64) {
+        payloadMessages[payloadMessages.length - 1].images = [state.imageBase64];
+      }
+
+      try {
+        const response = await fetch('/api/ollama/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            stream: false,
+            messages: payloadMessages,
+            options: {
+              temperature: 0.7,
+              num_predict: 512
+            }
+          })
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const answer = data?.message?.content || data?.response || data?.message?.thinking || '';
+
+        if (!answer) {
+          throw new Error('The model returned an empty response.');
+        }
+
+        state.messages.push({ role: 'assistant', content: answer });
+        state.imageBase64 = null;
+        state.imageMime = null;
+        state.imageName = null;
+        state.imagePreviewUrl = null;
+        state.imageWidth = null;
+        state.imageHeight = null;
+        renderImageInfo();
+        renderMessages();
+        setStatus('Ready');
+      } catch (error) {
+        state.messages.push({ role: 'system', content: `Error: ${error.message}` });
+        renderMessages();
+        setStatus('Request failed');
+      } finally {
+        state.busy = false;
+        el.sendBtn.disabled = false;
+      }
     }
-  }
 
-  elements.composer.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const promptText = elements.prompt.value.trim();
-    if (!promptText) return;
-    elements.prompt.value = '';
-    await sendMessage(promptText);
-  });
-
-  elements.prompt.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
+    el.composer.addEventListener('submit', async (event) => {
       event.preventDefault();
-      elements.composer.requestSubmit();
-    }
-  });
+      const promptText = el.prompt.value.trim();
+      if (!promptText) return;
+      el.prompt.value = '';
+      await sendMessage(promptText);
+    });
 
-  elements.stopBtn.addEventListener('click', () => {
-    STATE.abortController?.abort();
-  });
+    el.prompt.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        el.composer.requestSubmit();
+      }
+    });
 
-  elements.newChatBtn.addEventListener('click', () => {
-    createChat();
-    elements.prompt.focus();
-  });
+    el.refreshBtn.addEventListener('click', loadModels);
 
-  elements.clearCurrentBtn.addEventListener('click', () => {
-    deleteCurrentChat();
-  });
+    el.clearBtn.addEventListener('click', () => {
+      state.messages = [];
+      renderMessages();
+      setStatus('Chat cleared');
+    });
 
-  elements.refreshModelsBtn.addEventListener('click', () => {
-    fetchModels();
-  });
+    el.imageInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-  loadChats();
-  if (!STATE.currentChatId) createChat();
-  render();
-  fetchModels();
-</script>
+      try {
+        const optimized = await imageFileToOptimizedBase64(file);
+        state.imageBase64 = optimized.base64;
+        state.imageMime = optimized.mime;
+        state.imageName = file.name;
+        state.imagePreviewUrl = optimized.previewUrl;
+        state.imageWidth = optimized.width;
+        state.imageHeight = optimized.height;
+        renderImageInfo();
+        setStatus(`Attached ${file.name}`);
+      } catch (error) {
+        setStatus(`Could not read image: ${error.message}`);
+      } finally {
+        el.imageInput.value = '';
+      }
+    });
+
+    el.removeImageBtn.addEventListener('click', () => {
+      state.imageBase64 = null;
+      state.imageMime = null;
+      state.imageName = null;
+      state.imagePreviewUrl = null;
+      state.imageWidth = null;
+      state.imageHeight = null;
+      renderImageInfo();
+      setStatus('Image removed');
+    });
+
+    renderMessages();
+    renderImageInfo();
+    loadModels();
+  </script>
 </body>
 </html>
