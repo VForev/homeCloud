@@ -27,7 +27,8 @@ USER_PASSCODE = os.environ.get('USER_PASSCODE')
 ADMIN_PASSCODE = os.environ.get('ADMIN_PASSCODE')
 GUEST_PASSCODE = os.environ.get('GUEST_PASSCODE')
 MESSAGE_PASSCODE = os.environ.get('MESSAGE_PASSCODE')              # view/post messages
-MESSAGE_MOD_PASSCODE = os.environ.get('MESSAGE_MOD_PASSCODE')      # delete messages
+MESSAGE_MOD_PASSCODE = os.environ.get('MESSAGE_MOD_PASSCODE')  # delete messages
+AI_CODE = os.environ.get('AI_CODE')
 
 # Messages storage
 MESSAGES_FILE = os.path.join(DATA_FOLDER, 'messages.json')
@@ -76,6 +77,7 @@ def set_all_false():
     session['is_guest'] = False
     session['is_chat'] = False
     session['is_msgmod'] = False
+    session['is_ollama'] = False
 
 def logged_in():
     return any([
@@ -84,6 +86,7 @@ def logged_in():
         session.get('is_guest', False),
         session.get('is_chat', False),
         session.get('is_msgmod', False),
+        session.get('is_ollama', False),
     ])
 
 def is_user():
@@ -100,6 +103,9 @@ def is_chat():
 
 def is_msgmod():
     return session.get('is_msgmod', False)
+
+def is_ollama():
+    return session.get('is_ollama', False)
 
 # --- Routes ---
 
@@ -143,6 +149,12 @@ def passcode():
             session['is_msgmod'] = True   # can delete individual messages
             return redirect(url_for('messages_page'))
 
+        elif code == AI_CODE:
+            session.clear()
+            set_all_false()
+            session['is_ollama'] = True
+            return redirect(url_for('ollama_ui'))
+
         else:
             flash("Incorrect passcode.", "danger")
             return render_template('passcode.html')
@@ -152,6 +164,12 @@ def passcode():
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+@app.route('/ollama')
+def ollama_ui():
+    if not logged_in() or not is_ollama():
+        return redirect(url_for('passcode'))
+    return render_template('local_ollama_ui_index.html')
 
 # --- Images area ---
 
