@@ -12,6 +12,7 @@ const state = {
 
 const el = {
   status: document.getElementById('status'),
+  chatMeta: document.getElementById('chatMeta'),
   model: document.getElementById('model'),
   temperature: document.getElementById('temperature'),
   numPredict: document.getElementById('numPredict'),
@@ -21,17 +22,37 @@ const el = {
   empty: document.getElementById('empty'),
   composer: document.getElementById('composer'),
   prompt: document.getElementById('prompt'),
+  promptCount: document.getElementById('promptCount'),
   sendBtn: document.getElementById('sendBtn'),
   imageInput: document.getElementById('imageInput'),
+  attachmentBadge: document.getElementById('attachmentBadge'),
   fileInfo: document.getElementById('fileInfo'),
   removeImageBtn: document.getElementById('removeImageBtn'),
-  imagePreviewWrap: document.getElementById('imagePreviewWrap'),
-  imagePreview: document.getElementById('imagePreview'),
-  imageMeta: document.getElementById('imageMeta')
+  imagePreview: document.getElementById('imagePreview')
 };
 
-function setStatus(text) {
+function setStatus(text, tone = 'neutral') {
   el.status.textContent = text;
+  el.status.classList.remove('busy', 'ok', 'error');
+  if (tone === 'busy') el.status.classList.add('busy');
+  if (tone === 'ok') el.status.classList.add('ok');
+  if (tone === 'error') el.status.classList.add('error');
+}
+
+function setBusy(isBusy) {
+  state.busy = isBusy;
+  el.sendBtn.disabled = isBusy;
+  el.sendBtn.textContent = isBusy ? 'Sending...' : 'Send';
+}
+
+function updatePromptCount() {
+  if (!el.promptCount) return;
+  el.promptCount.textContent = `${el.prompt.value.length} chars`;
+}
+
+function updateChatMeta() {
+  if (!el.chatMeta) return;
+  el.chatMeta.textContent = `${state.messages.length} message${state.messages.length === 1 ? '' : 's'}`;
 }
 
 function escapeHtml(text) {
@@ -126,9 +147,9 @@ function createAssistantActions(messageText) {
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(messageText);
-      setStatus('Copied response');
-    } catch (error) {
-      setStatus('Copy failed');
+      setStatus('Copied response', 'ok');
+    } catch (_) {
+      setStatus('Copy failed', 'error');
     }
   });
 
@@ -138,8 +159,9 @@ function createAssistantActions(messageText) {
   reuseBtn.textContent = 'Use as prompt';
   reuseBtn.addEventListener('click', () => {
     el.prompt.value = messageText;
+    updatePromptCount();
     el.prompt.focus();
-    setStatus('Response copied into prompt box');
+    setStatus('Response moved to prompt box', 'ok');
   });
 
   actions.append(copyBtn, reuseBtn);
@@ -151,6 +173,7 @@ function renderMessages() {
 
   if (!state.messages.length) {
     el.chat.appendChild(el.empty);
+    updateChatMeta();
     return;
   }
 
@@ -180,31 +203,21 @@ function renderMessages() {
     el.chat.appendChild(wrapper);
   }
 
+  updateChatMeta();
   el.chat.scrollTop = el.chat.scrollHeight;
 }
 
 function renderImageInfo() {
   if (!state.imageBase64) {
-    el.fileInfo.classList.add('hidden');
-    el.removeImageBtn.classList.add('hidden');
-    el.imagePreviewWrap.classList.remove('show');
+    el.attachmentBadge.classList.add('hidden');
     el.fileInfo.textContent = '';
-    el.imageMeta.textContent = '';
     el.imagePreview.removeAttribute('src');
     return;
   }
 
-  el.fileInfo.classList.remove('hidden');
-  el.removeImageBtn.classList.remove('hidden');
-  el.imagePreviewWrap.classList.add('show');
-  el.fileInfo.textContent = `Image attached: ${state.imageName}`;
+  el.attachmentBadge.classList.remove('hidden');
+  el.fileInfo.textContent = state.imageName || 'attached image';
   el.imagePreview.src = state.imagePreviewUrl || '';
-
-  const approxKb = Math.max(1, Math.round((state.imageBase64.length * 3 / 4) / 1024));
-  const dims = state.imageWidth && state.imageHeight
-    ? `${state.imageWidth}×${state.imageHeight}px`
-    : 'resized image';
-  el.imageMeta.textContent = `${dims} • ~${approxKb} KB sent to model`;
 }
 
 function renderModels() {
@@ -229,22 +242,22 @@ function renderModels() {
   if (state.models.includes(current)) {
     el.model.value = current;
   } else {
-    const preferred = state.models.find(name => name.includes('qwen3-vl')) || state.models[0];
+    const preferred = state.models.find((name) => name.includes('qwen3-vl')) || state.models[0];
     el.model.value = preferred;
   }
 }
 
 async function loadModels() {
-  setStatus('Loading models...');
+  setStatus('Loading models...', 'busy');
   try {
     const response = await fetch('/api/ollama/api/tags', { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    state.models = (data.models || []).map(model => model.name);
+    state.models = (data.models || []).map((model) => model.name);
     renderModels();
-    setStatus(`Ready • ${state.models.length} model${state.models.length === 1 ? '' : 's'}`);
+    setStatus(`Ready • ${state.models.length} model${state.models.length === 1 ? '' : 's'}`, 'ok');
   } catch (error) {
-    setStatus(`Could not load models: ${error.message}`);
+    setStatus(`Could not load models: ${error.message}`, 'error');
   }
 }
 
@@ -298,18 +311,17 @@ async function sendMessage(promptText) {
 
   const model = el.model.value;
   if (!model) {
-    setStatus('No model selected');
+    setStatus('No model selected', 'error');
     return;
   }
 
-  state.busy = true;
-  el.sendBtn.disabled = true;
-  setStatus(`Running ${model}...`);
+  setBusy(true);
+  setStatus(`Running ${model}...`, 'busy');
 
   state.messages.push({ role: 'user', content: promptText });
   renderMessages();
 
-  const payloadMessages = state.messages.map(message => ({
+  const payloadMessages = state.messages.map((message) => ({
     role: message.role,
     content: message.content
   }));
@@ -354,14 +366,13 @@ async function sendMessage(promptText) {
     state.imageHeight = null;
     renderImageInfo();
     renderMessages();
-    setStatus('Ready');
+    setStatus('Ready', 'ok');
   } catch (error) {
     state.messages.push({ role: 'system', content: `Error: ${error.message}` });
     renderMessages();
-    setStatus('Request failed');
+    setStatus('Request failed', 'error');
   } finally {
-    state.busy = false;
-    el.sendBtn.disabled = false;
+    setBusy(false);
   }
 }
 
@@ -370,6 +381,7 @@ el.composer.addEventListener('submit', async (event) => {
   const promptText = el.prompt.value.trim();
   if (!promptText) return;
   el.prompt.value = '';
+  updatePromptCount();
   await sendMessage(promptText);
 });
 
@@ -380,12 +392,14 @@ el.prompt.addEventListener('keydown', (event) => {
   }
 });
 
+el.prompt.addEventListener('input', updatePromptCount);
+
 el.refreshBtn.addEventListener('click', loadModels);
 
 el.clearBtn.addEventListener('click', () => {
   state.messages = [];
   renderMessages();
-  setStatus('Chat cleared');
+  setStatus('Chat cleared', 'ok');
 });
 
 el.imageInput.addEventListener('change', async (event) => {
@@ -401,9 +415,9 @@ el.imageInput.addEventListener('change', async (event) => {
     state.imageWidth = optimized.width;
     state.imageHeight = optimized.height;
     renderImageInfo();
-    setStatus(`Attached ${file.name}`);
+    setStatus(`Attached ${file.name}`, 'ok');
   } catch (error) {
-    setStatus(`Could not read image: ${error.message}`);
+    setStatus(`Could not read image: ${error.message}`, 'error');
   } finally {
     el.imageInput.value = '';
   }
@@ -417,9 +431,11 @@ el.removeImageBtn.addEventListener('click', () => {
   state.imageWidth = null;
   state.imageHeight = null;
   renderImageInfo();
-  setStatus('Image removed');
+  setStatus('Image removed', 'ok');
 });
 
 renderMessages();
 renderImageInfo();
+updatePromptCount();
+setBusy(false);
 loadModels();

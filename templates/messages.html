@@ -3,37 +3,195 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Messages</title>
+  <title>Comms Thread</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
+    .thread-layout {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .compose-panel h2,
+    .feed-panel h2 {
+      margin: 0;
+      font-size: 1.18rem;
+    }
+
+    .small-muted {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
     #progressContainer {
       width: 100%;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 999px;
-      margin-top: 6px;
-      display: none;
+      margin-top: 10px;
       overflow: hidden;
+      display: none;
     }
+
     #progressBar {
       width: 0%;
       height: 10px;
       background: linear-gradient(135deg, #6c63ff, #5fbbe8);
-      transition: width 0.2s;
-    }
-    .messages-grid {
-      max-height: calc(100vh - 330px);
-      overflow-y: auto;
+      transition: width 0.2s ease;
     }
 
-    @media (max-width: 700px) {
-      .messages-grid {
-        max-height: none;
-        overflow-y: visible;
+    .status-pill {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .status-pill.error {
+      border-color: rgba(255, 93, 115, 0.5);
+      color: #ffd8de;
+      background: rgba(255, 93, 115, 0.13);
+    }
+
+    .feed-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .thread-list {
+      display: grid;
+      gap: 10px;
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .thread-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      margin-left: calc(var(--depth) * 20px);
+      position: relative;
+    }
+
+    .thread-card.reply {
+      border-left: 3px solid rgba(124, 156, 255, 0.45);
+    }
+
+    .thread-main {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .vote-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      user-select: none;
+    }
+
+    .vote-arrow {
+      line-height: 1;
+      font-size: 0.95rem;
+      opacity: 0.8;
+    }
+
+    .thread-meta {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .thread-author {
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .thread-body {
+      margin-top: 6px;
+      color: var(--text);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .thread-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .link-btn {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .link-btn:hover {
+      color: var(--text);
+      border-color: rgba(124, 156, 255, 0.45);
+    }
+
+    .reply-box {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.16);
+      display: grid;
+      gap: 8px;
+    }
+
+    .reply-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .thread-layout {
+        grid-template-columns: 1fr;
       }
 
-      #msgForm .actions-row {
-        flex-direction: column;
+      .thread-list {
+        max-height: none;
+      }
+
+      .thread-card {
+        margin-left: calc(var(--depth) * 12px);
       }
     }
   </style>
@@ -41,142 +199,356 @@
 </head>
 <body>
   <main class="page-shell">
-  <div class="container">
-
-    <div class="top-bar">
-      <h1 class="page-title" style="text-align:center;">Communication Messaging</h1>
-      <p class="page-subtitle" style="text-align:center;">Private shared message board for your project.</p>
-
-      <form id="msgForm" class="form-stack" style="max-width:680px; margin:16px auto 0;">
-        <input type="text" id="author" name="author" placeholder="Your name (optional)">
-        <textarea id="text" name="text" rows="4" placeholder="Write a message..."></textarea>
-
-        <div class="actions-row" style="margin-top:0; width:100%; justify-content:center;">
-          <button type="submit" class="btn" style="min-width:150px;">Send</button>
-          <button id="clearBtn" type="button" class="btn secondary" {% if not can_delete %}style="display:none;"{% endif %}>Clear (admin)</button>
+    <div class="container">
+      <div class="top-bar">
+        <h1 class="page-title" style="text-align:center;">Comms Thread</h1>
+        <p class="page-subtitle" style="text-align:center;">Reddit-style discussion board with threaded replies.</p>
+        <div class="actions-row" style="justify-content:center;">
           <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
         </div>
+      </div>
 
-        <div id="progressContainer">
-          <div id="progressBar"></div>
-        </div>
-      </form>
+      <div class="thread-layout">
+        <section class="panel compose-panel">
+          <h2>Create Post</h2>
+          <p class="small-muted" style="margin:8px 0 0;">Start a new thread. Use reply under any post to continue discussion.</p>
 
-      <p class="helper-text" style="text-align:center; margin-top:10px;">Everyone with the message passcode can read and post. Newest messages appear first.</p>
+          <form id="rootForm" class="form-stack" style="margin-top:12px;">
+            <input type="text" id="author" name="author" placeholder="Username (optional)" maxlength="50">
+            <textarea id="rootText" name="text" rows="5" placeholder="What do you want to share?" maxlength="2000" required></textarea>
+            <div class="actions-row" style="margin-top:0;">
+              <button id="sendRootBtn" type="submit" class="btn">Post</button>
+              <button id="clearBtn" type="button" class="btn secondary" {% if not can_delete %}style="display:none;"{% endif %}>Clear All</button>
+            </div>
+            <div id="progressContainer"><div id="progressBar"></div></div>
+          </form>
+
+          <div id="statusNote" class="status-pill">Ready</div>
+        </section>
+
+        <section class="panel feed-panel">
+          <div class="feed-head">
+            <h2>Thread Feed</h2>
+            <div class="small-muted"><span id="messageCount">0</span> messages • <span id="lastUpdated">Not loaded</span></div>
+          </div>
+          <div id="threadList" class="thread-list"></div>
+        </section>
+      </div>
     </div>
-
-    <div class="messages-grid" id="messagesGrid"></div>
-  </div>
   </main>
 
-  <div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;">
-    <div class="spinner"></div>
-  </div>
-
   <script>
-    const grid = document.getElementById('messagesGrid');
-    const form = document.getElementById('msgForm');
+    const rootForm = document.getElementById('rootForm');
+    const sendRootBtn = document.getElementById('sendRootBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const authorInput = document.getElementById('author');
+    const rootText = document.getElementById('rootText');
+    const threadList = document.getElementById('threadList');
+    const messageCount = document.getElementById('messageCount');
+    const lastUpdated = document.getElementById('lastUpdated');
+    const statusNote = document.getElementById('statusNote');
     const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
 
-    async function loadMessages() {
-      const res = await fetch('/api/messages');
-      if (!res.ok) {
-        grid.innerHTML = '<div class="message-card"><div class="message-text">Not authorized.</div></div>';
-        hideOverlay();
-        return;
-      }
-      const data = await res.json();
-      grid.innerHTML = '';
-      data.forEach((m) => {
-        const card = document.createElement('div');
-        card.className = 'message-card';
+    let loading = false;
 
-        const meta = document.createElement('div');
-        meta.className = 'message-meta';
-        const when = new Date((m.ts || 0) * 1000);
-        const who = (m.author && m.author.trim()) ? m.author.trim() : 'Anonymous';
-        meta.textContent = `${who} • ${when.toLocaleString()}`;
-
-        const body = document.createElement('div');
-        body.className = 'message-text';
-        body.textContent = m.text || '';
-
-        card.appendChild(meta);
-        card.appendChild(body);
-
-        if (window.CAN_DELETE === true || window.CAN_DELETE === 'true') {
-          const del = document.createElement('button');
-          del.className = 'btn secondary';
-          del.textContent = 'Delete';
-          del.style.marginTop = '8px';
-          del.addEventListener('click', async () => {
-            if (!confirm('Delete this message?')) return;
-            const r = await fetch('/api/messages/delete', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({ id: m.id })
-            });
-            if (r.ok) loadMessages();
-            else {
-              const err = await r.json().catch(() => ({}));
-              alert(err.msg || 'Failed to delete.');
-            }
-          });
-          card.appendChild(del);
-        }
-
-        grid.appendChild(card);
-      });
-      hideOverlay();
+    function canDelete() {
+      return window.CAN_DELETE === true || window.CAN_DELETE === 'true';
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const author = document.getElementById('author').value.trim();
-      const text = document.getElementById('text').value.trim();
-      if (!text) return;
+    function setStatus(text, error) {
+      statusNote.textContent = text;
+      statusNote.classList.toggle('error', !!error);
+    }
 
+    function formatTimestamp(tsSeconds) {
+      const dt = new Date((tsSeconds || 0) * 1000);
+      if (Number.isNaN(dt.getTime())) return 'Unknown time';
+      return dt.toLocaleString();
+    }
+
+    function authorLabel(author) {
+      const safe = (author || '').trim() || 'Anonymous';
+      return `u/${safe.replace(/^u\//, '')}`;
+    }
+
+    function clampDepth(depth) {
+      return Math.max(0, Math.min(depth, 6));
+    }
+
+    function buildThreadTree(messages) {
+      const map = new Map();
+      messages.forEach((m) => {
+        map.set(m.id, { ...m, children: [] });
+      });
+
+      const roots = [];
+      map.forEach((node) => {
+        if (node.parent_id && map.has(node.parent_id)) {
+          map.get(node.parent_id).children.push(node);
+        } else {
+          roots.push(node);
+        }
+      });
+
+      roots.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+      function sortChildren(list) {
+        list.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+        list.forEach((child) => sortChildren(child.children));
+      }
+
+      roots.forEach((root) => sortChildren(root.children));
+      return roots;
+    }
+
+    function createButton(label, onClick) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'link-btn';
+      btn.textContent = label;
+      btn.addEventListener('click', onClick);
+      return btn;
+    }
+
+    async function postMessage(text, parentId) {
+      const payload = {
+        author: authorInput.value.trim(),
+        text: text.trim()
+      };
+      if (parentId) payload.parent_id = parentId;
+
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.msg || 'Post failed');
+      }
+    }
+
+    async function deleteMessage(id) {
+      const response = await fetch('/api/messages/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.msg || 'Delete failed');
+      }
+      return response.json().catch(() => ({}));
+    }
+
+    function createReplyBox(parentId, depth, onDone) {
+      const wrap = document.createElement('div');
+      wrap.className = 'reply-box';
+
+      const area = document.createElement('textarea');
+      area.rows = 3;
+      area.maxLength = 2000;
+      area.placeholder = `Reply to thread (${2000} max chars)`;
+
+      const actions = document.createElement('div');
+      actions.className = 'reply-actions';
+
+      const cancelBtn = createButton('Cancel', () => onDone(false));
+      const postBtn = document.createElement('button');
+      postBtn.type = 'button';
+      postBtn.className = 'btn';
+      postBtn.textContent = 'Reply';
+
+      postBtn.addEventListener('click', async () => {
+        const text = area.value.trim();
+        if (!text) {
+          setStatus('Reply cannot be empty.', true);
+          return;
+        }
+        postBtn.disabled = true;
+        try {
+          await postMessage(text, parentId);
+          setStatus('Reply posted.', false);
+          onDone(true);
+        } catch (error) {
+          setStatus(error.message || 'Reply failed.', true);
+          postBtn.disabled = false;
+        }
+      });
+
+      actions.append(cancelBtn, postBtn);
+      wrap.append(area, actions);
+      if (depth >= 4) {
+        area.placeholder = 'Reply to thread (deep nesting compacted on mobile)';
+      }
+      return wrap;
+    }
+
+    function renderThreadNodes(nodes, host, depth) {
+      nodes.forEach((node) => {
+        const card = document.createElement('article');
+        card.className = 'thread-card' + (depth > 0 ? ' reply' : '');
+        card.style.setProperty('--depth', String(clampDepth(depth)));
+
+        const main = document.createElement('div');
+        main.className = 'thread-main';
+
+        const rail = document.createElement('div');
+        rail.className = 'vote-rail';
+        rail.innerHTML = '<span class="vote-arrow">▲</span><span>•</span><span class="vote-arrow">▼</span>';
+
+        const content = document.createElement('div');
+
+        const meta = document.createElement('div');
+        meta.className = 'thread-meta';
+
+        const author = document.createElement('span');
+        author.className = 'thread-author';
+        author.textContent = authorLabel(node.author);
+
+        const when = document.createElement('span');
+        when.textContent = formatTimestamp(node.ts);
+
+        const detail = document.createElement('span');
+        detail.textContent = depth === 0 ? 'Thread' : `Reply level ${depth}`;
+
+        meta.append(author, when, detail);
+
+        const body = document.createElement('div');
+        body.className = 'thread-body';
+        body.textContent = node.text || '';
+
+        const actions = document.createElement('div');
+        actions.className = 'thread-actions';
+
+        const replyBtn = createButton('Reply', () => {
+          const existing = card.querySelector('.reply-box');
+          if (existing) {
+            existing.remove();
+            return;
+          }
+          const replyBox = createReplyBox(node.id, depth + 1, async (refresh) => {
+            replyBox.remove();
+            if (refresh) await loadMessages();
+          });
+          card.appendChild(replyBox);
+        });
+        actions.appendChild(replyBtn);
+
+        if (canDelete()) {
+          const delBtn = createButton('Delete', async () => {
+            if (!confirm('Delete this message and all its replies?')) return;
+            try {
+              await deleteMessage(node.id);
+              setStatus('Message deleted.', false);
+              await loadMessages();
+            } catch (error) {
+              setStatus(error.message || 'Delete failed.', true);
+            }
+          });
+          actions.appendChild(delBtn);
+        }
+
+        content.append(meta, body, actions);
+        main.append(rail, content);
+        card.appendChild(main);
+        host.appendChild(card);
+
+        if (node.children && node.children.length) {
+          renderThreadNodes(node.children, host, depth + 1);
+        }
+      });
+    }
+
+    function renderMessages(messages) {
+      threadList.innerHTML = '';
+      messageCount.textContent = String(messages.length);
+
+      if (!messages.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No threads yet. Create the first post.';
+        threadList.appendChild(empty);
+        return;
+      }
+
+      const roots = buildThreadTree(messages);
+      renderThreadNodes(roots, threadList, 0);
+    }
+
+    async function loadMessages() {
+      if (loading) return;
+      loading = true;
+      try {
+        const response = await fetch('/api/messages', { cache: 'no-store' });
+        if (!response.ok) {
+          threadList.innerHTML = '<div class="empty-state">Unable to load messages.</div>';
+          setStatus('Load failed or unauthorized.', true);
+          return;
+        }
+        const payload = await response.json();
+        renderMessages(payload);
+        lastUpdated.textContent = new Date().toLocaleTimeString();
+      } catch (_) {
+        threadList.innerHTML = '<div class="empty-state">Unable to load messages.</div>';
+        setStatus('Connection issue while loading threads.', true);
+      } finally {
+        loading = false;
+      }
+    }
+
+    rootForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const text = rootText.value.trim();
+      if (!text) {
+        setStatus('Post cannot be empty.', true);
+        return;
+      }
+
+      sendRootBtn.disabled = true;
       progressContainer.style.display = 'block';
       progressBar.style.width = '25%';
 
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ author, text })
-      });
-
-      if (res.ok) {
-        progressBar.style.width = '80%';
-        document.getElementById('text').value = '';
+      try {
+        await postMessage(text, null);
+        rootText.value = '';
+        progressBar.style.width = '90%';
+        setStatus('Thread posted.', false);
         await loadMessages();
         progressBar.style.width = '100%';
         setTimeout(() => {
           progressBar.style.width = '0%';
           progressContainer.style.display = 'none';
-        }, 300);
-      } else {
-        alert('Failed to post message');
+        }, 240);
+      } catch (error) {
+        setStatus(error.message || 'Post failed.', true);
         progressBar.style.width = '0%';
         progressContainer.style.display = 'none';
+      } finally {
+        sendRootBtn.disabled = false;
       }
     });
 
     if (clearBtn) {
       clearBtn.addEventListener('click', async () => {
-        if (!confirm('Clear all messages? (admin only)')) return;
-        const r = await fetch('/api/messages/clear', { method:'POST' });
-        if (r.ok) loadMessages();
-        else alert('Not authorized or failed.');
+        if (!confirm('Clear all messages?')) return;
+        clearBtn.disabled = true;
+        try {
+          const response = await fetch('/api/messages/clear', { method: 'POST' });
+          if (!response.ok) {
+            setStatus('Clear failed.', true);
+            return;
+          }
+          setStatus('All threads cleared.', false);
+          await loadMessages();
+        } catch (_) {
+          setStatus('Clear failed.', true);
+        } finally {
+          clearBtn.disabled = false;
+        }
       });
-    }
-
-    function hideOverlay() {
-      const overlay = document.getElementById('loadingOverlay');
-      if (!overlay) return;
-      overlay.style.opacity = '0';
-      setTimeout(() => { overlay.style.display = 'none'; }, 320);
     }
 
     document.addEventListener('DOMContentLoaded', () => {

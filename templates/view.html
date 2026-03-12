@@ -3,122 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Only Gallery</title>
+    <title>View Storage</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .gallery {
-            max-height: calc(100vh - 280px);
-            overflow-y: auto;
+        .section-head {
+            margin-top: 18px;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
         }
 
-        @media (max-width: 700px) {
-            .gallery {
-                max-height: none;
-                overflow-y: visible;
-            }
+        .section-head h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .media-grid {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .media-card {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .media-thumb {
+            width: 100%;
+            height: 170px;
+            border: 0;
+            object-fit: cover;
+            background: #02040a;
+        }
+
+        .media-thumb.clickable {
+            cursor: pointer;
+        }
+
+        .media-meta {
+            padding: 10px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .media-name {
+            font-size: 0.92rem;
+            overflow-wrap: anywhere;
+            color: var(--text);
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .file-list {
+            margin-top: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .file-row {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .file-name {
+            overflow-wrap: anywhere;
+            color: var(--text);
+            font-size: 0.92rem;
+            flex: 1 1 220px;
+        }
+
+        .file-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .empty-message {
+            margin-top: 10px;
+            color: var(--muted);
         }
     </style>
 </head>
 <body>
     <main class="page-shell">
-    <div class="container">
-        <div class="top-bar">
-            <h1 class="page-title" style="text-align:center;">Gallery Viewer</h1>
-            <p class="page-subtitle" style="text-align:center;">Browse images in full size with a clean, private view-only experience.</p>
-
-            <div class="actions-row" style="justify-content:center;">
-                <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
+        <div class="container">
+            <div class="top-bar">
+                <h1 class="page-title" style="text-align:center;">Gallery Viewer</h1>
+                <p class="page-subtitle" style="text-align:center;">
+                    Browse images and videos, and download files in read-only mode.
+                </p>
+                <div class="actions-row" style="justify-content:center;">
+                    <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
+                </div>
             </div>
 
-            <p class="helper-text" style="text-align:center; margin-top:8px;">Click an image for full size. Use arrows or swipe left/right.</p>
-        </div>
+            <section class="panel" style="margin-top:16px;">
+                <div class="section-head">
+                    <h2>Media</h2>
+                    <span class="helper-text">{{ media_items|length }} item(s)</span>
+                </div>
+                {% if media_items %}
+                <div class="media-grid">
+                    {% for item in media_items %}
+                    <article class="media-card">
+                        {% if item.type == 'image' %}
+                        <img
+                            src="{{ url_for('uploaded_file', filename=item.name) }}"
+                            alt="{{ item.name }}"
+                            class="media-thumb clickable preview-image"
+                            data-src="{{ url_for('uploaded_file', filename=item.name) }}"
+                        >
+                        {% else %}
+                        <video class="media-thumb" controls preload="metadata">
+                            <source src="{{ url_for('uploaded_file', filename=item.name) }}">
+                        </video>
+                        {% endif %}
+                        <div class="media-meta">
+                            <div class="media-name">{{ item.name }}</div>
+                            <div class="meta-row">
+                                <span>{{ item.size_label }}</span>
+                                <a class="btn secondary" href="{{ url_for('download_file', filename=item.name) }}">Download</a>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="empty-message">No images or videos available.</p>
+                {% endif %}
+            </section>
 
-        <div class="gallery">
-            {% for image in images %}
-                <img src="/images/{{ image }}" alt="{{ image }}" data-index="{{ loop.index0 }}">
-            {% endfor %}
+            <section class="panel" style="margin-top:16px;">
+                <div class="section-head">
+                    <h2>Files</h2>
+                    <span class="helper-text">{{ file_items|length }} item(s)</span>
+                </div>
+                {% if file_items %}
+                <div class="file-list">
+                    {% for item in file_items %}
+                    <div class="file-row">
+                        <div class="file-name">{{ item.name }}</div>
+                        <div class="file-actions">
+                            <span>{{ item.size_label }}</span>
+                            <a class="btn secondary" href="{{ url_for('download_file', filename=item.name) }}">Download</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="empty-message">No generic files available.</p>
+                {% endif %}
+            </section>
         </div>
-    </div>
     </main>
 
     <div class="lightbox" id="lightbox">
         <button class="nav-btn prev" onclick="prevImage()">&#10094;</button>
-        <img id="lightboxImage" src="">
+        <img id="lightboxImage" src="" alt="Preview">
         <button class="nav-btn next" onclick="nextImage()">&#10095;</button>
     </div>
 
     <script>
-        const galleryImgs = Array.from(document.querySelectorAll('.gallery img'));
-        let currentIndex = 0;
+        const previewImages = Array.from(document.querySelectorAll('.preview-image'));
         const lightbox = document.getElementById('lightbox');
         const lightboxImage = document.getElementById('lightboxImage');
+        let currentIndex = 0;
+
         function openLightbox(index) {
+            if (!previewImages.length) return;
             currentIndex = index;
-            showImage();
+            lightboxImage.src = previewImages[currentIndex].dataset.src;
             lightbox.classList.add('show');
         }
-        function showImage() {
-            lightboxImage.src = galleryImgs[currentIndex].src;
-        }
+
         function closeLightbox() {
             lightbox.classList.remove('show');
         }
+
         function nextImage() {
-            currentIndex = (currentIndex + 1) % galleryImgs.length;
-            showImage();
+            if (!previewImages.length) return;
+            currentIndex = (currentIndex + 1) % previewImages.length;
+            lightboxImage.src = previewImages[currentIndex].dataset.src;
         }
+
         function prevImage() {
-            currentIndex = (currentIndex - 1 + galleryImgs.length) % galleryImgs.length;
-            showImage();
+            if (!previewImages.length) return;
+            currentIndex = (currentIndex - 1 + previewImages.length) % previewImages.length;
+            lightboxImage.src = previewImages[currentIndex].dataset.src;
         }
-        lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-        let startX = 0;
-        lightbox.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-        lightbox.addEventListener('touchend', e => {
-            const endX = e.changedTouches[0].clientX;
-            if (startX - endX > 50) nextImage();
-            if (endX - startX > 50) prevImage();
-        });
-        document.querySelectorAll('.gallery img').forEach((img, idx) => {
+
+        previewImages.forEach((img, idx) => {
             img.addEventListener('click', function() {
                 openLightbox(idx);
             });
         });
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const overlay = document.getElementById("loadingOverlay");
-            let loaded = 0;
-            let total = galleryImgs.length;
-            if (!overlay) return;
-            if (total === 0) {
-                overlay.style.display = "none";
-                return;
-            }
-            function hideOverlay() {
-                overlay.style.opacity = "0";
-                setTimeout(() => { overlay.style.display = "none"; }, 320);
-            }
-            galleryImgs.forEach(img => {
-                if (img.complete) {
-                    loaded++;
-                    if (loaded >= total) hideOverlay();
-                } else {
-                    img.addEventListener('load', () => {
-                        loaded++;
-                        if (loaded >= total) hideOverlay();
-                    });
-                    img.addEventListener('error', () => {
-                        loaded++;
-                        if (loaded >= total) hideOverlay();
-                    });
-                }
-            });
+        lightbox.addEventListener('click', function(event) {
+            if (event.target === lightbox) closeLightbox();
+        });
+
+        let touchStartX = 0;
+        lightbox.addEventListener('touchstart', function(event) {
+            touchStartX = event.touches[0].clientX;
+        });
+        lightbox.addEventListener('touchend', function(event) {
+            const touchEndX = event.changedTouches[0].clientX;
+            if (touchStartX - touchEndX > 50) nextImage();
+            if (touchEndX - touchStartX > 50) prevImage();
         });
     </script>
-
-    <div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;">
-        <div class="spinner"></div>
-    </div>
-
 </body>
 </html>

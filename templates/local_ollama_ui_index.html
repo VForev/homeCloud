@@ -8,53 +8,80 @@
 </head>
 <body>
   <div class="app">
-    <div class="topbar">
+    <header class="topbar">
       <div class="brand">
         <h1>VFore AI • Local & Private</h1>
-        <div id="status" class="status">Loading models...</div>
+        <div class="status-row">
+          <div id="status" class="status">Loading models...</div>
+          <div id="chatMeta" class="meta-pill">0 messages</div>
+        </div>
       </div>
-      <div class="controls">
-        <select id="model" class="select"></select>
-        <input id="temperature" class="number-input" type="number" min="0" max="2" step="0.1" value="0.7" title="Temperature" />
-        <input id="numPredict" class="number-input" type="number" min="64" max="4096" step="64" value="512" title="Max tokens" />
-        <button id="refreshBtn" class="btn secondary" type="button">Refresh</button>
-        <button id="clearBtn" class="btn danger" type="button">Clear</button>
+      <div class="top-actions">
+        <details class="settings-menu">
+          <summary class="mini-btn">AI Settings</summary>
+          <div class="settings-popover">
+            <label class="field-label" for="model">Model</label>
+            <select id="model" class="select"></select>
+
+            <div class="field-grid">
+              <label class="field-block" for="temperature">
+                <span class="field-label">Temperature</span>
+                <input id="temperature" class="number-input" type="number" min="0" max="2" step="0.1" value="0.7" title="Temperature" />
+              </label>
+              <label class="field-block" for="numPredict">
+                <span class="field-label">Max Tokens</span>
+                <input id="numPredict" class="number-input" type="number" min="64" max="4096" step="64" value="512" title="Max tokens" />
+              </label>
+            </div>
+
+            <div class="stack-actions">
+              <button id="refreshBtn" class="btn secondary" type="button">Refresh Models</button>
+              <button id="clearBtn" class="btn danger" type="button">Clear Chat</button>
+            </div>
+          </div>
+        </details>
+
         <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
       </div>
+    </header>
+
+    <div class="workspace">
+      <section class="chat-panel">
+        <div id="chat" class="chat">
+          <div id="empty" class="empty">
+            Choose a model, write a prompt, and send. Attach one image when needed.
+          </div>
+        </div>
+
+        <form id="composer" class="composer">
+          <div class="composer-top">
+            <span class="field-label">Prompt</span>
+            <span id="promptCount" class="hint-chip">0 chars</span>
+          </div>
+
+          <div class="composer-row">
+            <div class="prompt-stack">
+              <div class="prompt-wrap">
+                <textarea id="prompt" class="textarea" placeholder="Ask something..."></textarea>
+                <label for="imageInput" class="mini-btn attach-btn">+ Img</label>
+                <input id="imageInput" class="hidden" type="file" accept="image/*" />
+              </div>
+
+              <div id="attachmentBadge" class="attachment-badge hidden">
+                <img id="imagePreview" class="attachment-thumb" alt="Attached image preview" />
+                <div id="fileInfo" class="file-pill compact"></div>
+                <button id="removeImageBtn" class="mini-btn remove-attach" type="button">x</button>
+              </div>
+            </div>
+            <div class="buttons">
+              <button id="sendBtn" class="btn" type="submit">Send</button>
+            </div>
+          </div>
+
+          <div class="hint">Enter to send. Shift+Enter for a new line.</div>
+        </form>
+      </section>
     </div>
-
-    <div id="chat" class="chat">
-      <div id="empty" class="empty">
-        Choose a model and send a prompt. You can attach one image. Everything here is designed for local, private AI chat.
-      </div>
-    </div>
-
-    <form id="composer" class="composer">
-      <div class="file-row">
-        <div id="fileInfo" class="file-pill hidden"></div>
-        <div>
-          <label for="imageInput" class="btn secondary" style="display:inline-block;">Upload Image</label>
-          <input id="imageInput" class="hidden" type="file" accept="image/*" />
-        </div>
-      </div>
-
-      <div id="imagePreviewWrap" class="image-preview-wrap">
-        <div class="image-preview">
-          <img id="imagePreview" alt="Selected image preview" />
-        </div>
-        <div class="image-meta" id="imageMeta"></div>
-      </div>
-
-      <div class="composer-row">
-        <textarea id="prompt" class="textarea" placeholder="Ask something..."></textarea>
-        <div class="buttons">
-          <button id="sendBtn" class="btn" type="submit">Send</button>
-          <button id="removeImageBtn" class="btn secondary hidden" type="button">Remove Image</button>
-        </div>
-      </div>
-
-      <div class="hint">Enter to send. Shift+Enter for a new line.</div>
-    </form>
   </div>
 
   <script src="{{ url_for('static', filename='local_ollama_ui.js') }}"></script>
