@@ -35,8 +35,14 @@ const el = {
 };
 
 function closeSettingsMenu() {
-  if (!el.settingsMenu || !el.settingsMenu.open) return;
-  el.settingsMenu.open = false;
+  if (!el.settingsMenu || !el.settingsMenu.classList.contains('open')) return;
+  el.settingsMenu.classList.remove('open');
+  if (el.settingsToggle) {
+    el.settingsToggle.setAttribute('aria-expanded', 'false');
+  }
+  if (el.settingsPopover) {
+    el.settingsPopover.setAttribute('aria-hidden', 'true');
+  }
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
   }
@@ -44,10 +50,17 @@ function closeSettingsMenu() {
 
 function toggleSettingsMenu() {
   if (!el.settingsMenu) return;
-  const shouldOpen = !el.settingsMenu.open;
-  el.settingsMenu.open = shouldOpen;
-  if (!shouldOpen && document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
+  const isOpen = el.settingsMenu.classList.contains('open');
+  if (isOpen) {
+    closeSettingsMenu();
+    return;
+  }
+  el.settingsMenu.classList.add('open');
+  if (el.settingsToggle) {
+    el.settingsToggle.setAttribute('aria-expanded', 'true');
+  }
+  if (el.settingsPopover) {
+    el.settingsPopover.setAttribute('aria-hidden', 'false');
   }
 }
 
@@ -418,14 +431,20 @@ el.prompt.addEventListener('keydown', (event) => {
 el.prompt.addEventListener('input', updatePromptCount);
 
 if (el.settingsToggle) {
-  el.settingsToggle.addEventListener('click', (event) => {
-    event.preventDefault();
+  el.settingsToggle.setAttribute('aria-expanded', 'false');
+}
+if (el.settingsPopover) {
+  el.settingsPopover.setAttribute('aria-hidden', 'true');
+}
+
+if (el.settingsToggle) {
+  el.settingsToggle.addEventListener('click', () => {
     toggleSettingsMenu();
   });
 }
 
 document.addEventListener('pointerdown', (event) => {
-  if (!el.settingsMenu || !el.settingsMenu.open) return;
+  if (!el.settingsMenu || !el.settingsMenu.classList.contains('open')) return;
   const target = event.target;
   if (!(target instanceof Node)) return;
   if (!el.settingsMenu.contains(target)) {

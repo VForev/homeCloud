@@ -17,9 +17,11 @@
         </div>
       </div>
       <div class="top-actions">
-        <details id="settingsMenu" class="settings-menu">
-          <summary id="settingsToggle" class="mini-btn">AI Settings</summary>
-          <div id="settingsPopover" class="settings-popover">
+        <div id="settingsMenu" class="settings-menu">
+          <button id="settingsToggle" class="mini-btn settings-toggle" type="button" aria-controls="settingsPopover" aria-expanded="false">
+            AI Settings
+          </button>
+          <div id="settingsPopover" class="settings-popover" aria-hidden="true">
             <label class="field-label" for="model">Model</label>
             <select id="model" class="select"></select>
 
@@ -39,7 +41,7 @@
               <button id="clearBtn" class="btn danger" type="button">Clear Chat</button>
             </div>
           </div>
-        </details>
+        </div>
 
         <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
       </div>

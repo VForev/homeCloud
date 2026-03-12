@@ -165,16 +165,9 @@ input {
   position: relative;
 }
 
-.settings-menu > summary {
-  list-style: none;
-}
-
-.settings-menu > summary::-webkit-details-marker {
-  display: none;
-}
-
-.settings-menu[open] > summary {
+.settings-menu.open .settings-toggle {
   border-color: rgba(127, 159, 255, 0.45);
+  background: rgba(127, 159, 255, 0.12);
 }
 
 .settings-popover {
@@ -190,13 +183,22 @@ input {
   background: rgba(17, 26, 49, 0.98);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
   padding: 12px;
-  display: none;
+  display: grid;
   gap: 10px;
   z-index: 60;
+  opacity: 0;
+  transform: translate3d(20px, -10px, 0);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.22s ease, visibility 0s linear 0.22s;
 }
 
-.settings-menu[open] .settings-popover {
-  display: grid;
+.settings-menu.open .settings-popover {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.24s ease, visibility 0s;
 }
 
 .chat-panel {
