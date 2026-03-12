@@ -163,7 +163,12 @@ def passcode():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('home'))
+    return redirect(url_for('passcode'))
+
+@app.route('/logout_passcode')
+def logout_passcode():
+    session.clear()
+    return redirect(url_for('passcode'))
 
 @app.route('/ollama')
 def ollama_ui():

@@ -1,0 +1,362 @@
+:root {
+  --bg: #0b1020;
+  --panel: #121a30;
+  --panel-2: #1a2542;
+  --line: rgba(255,255,255,0.08);
+  --text: #eef2ff;
+  --muted: #aab4d6;
+  --accent: #7c9cff;
+  --danger: #ff8c8c;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: linear-gradient(180deg, #0a1020 0%, #0e1530 100%);
+  color: var(--text);
+  font-family: "SF Pro Text", "SF Pro Display", "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.app {
+  width: min(100%, 980px);
+  height: min(92vh, 900px);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 22px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,0.02);
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+select, textarea, button, input {
+  font: inherit;
+}
+
+.select, .textarea, .number-input {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  border-radius: 12px;
+  outline: none;
+}
+
+.select, .number-input {
+  padding: 10px 12px;
+  min-width: 120px;
+}
+
+.select {
+  min-width: 220px;
+}
+
+.chat {
+  overflow: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(255,255,255,0.01);
+}
+
+.empty {
+  margin: auto;
+  text-align: center;
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 90%;
+}
+
+.msg.user { align-self: flex-end; }
+.msg.assistant { align-self: flex-start; }
+.msg.system { align-self: center; max-width: 100%; }
+
+.role {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 4px;
+}
+
+.bubble {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+.user .bubble { background: rgba(124,156,255,0.18); }
+.assistant .bubble { background: rgba(255,255,255,0.04); }
+.system .bubble { background: rgba(255,140,140,0.10); }
+
+.bubble h1, .bubble h2, .bubble h3 {
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.bubble p {
+  margin: 0 0 12px;
+}
+
+.bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.bubble ul, .bubble ol {
+  margin: 6px 0 12px 22px;
+  padding: 0;
+}
+
+.bubble code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: rgba(255,255,255,0.08);
+  padding: 2px 6px;
+  border-radius: 7px;
+  font-size: 0.95em;
+}
+
+.bubble pre {
+  margin: 14px 0;
+  background: rgba(0,0,0,0.28);
+  padding: 14px;
+  border-radius: 14px;
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.bubble pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.assistant-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-left: 4px;
+}
+
+.chip-btn {
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.chip-btn:hover {
+  color: var(--text);
+  border-color: rgba(124, 156, 255, 0.28);
+}
+
+.composer {
+  border-top: 1px solid var(--line);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  background: rgba(255,255,255,0.02);
+}
+
+.file-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.file-pill {
+  color: var(--muted);
+  font-size: 0.9rem;
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.03);
+}
+
+.image-preview-wrap {
+  display: none;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.image-preview-wrap.show {
+  display: flex;
+}
+
+.image-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  flex: 0 0 auto;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-meta {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.composer-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  padding: 14px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  color: white;
+  background: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn.secondary {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.btn.danger {
+  background: rgba(255,140,140,0.16);
+  border: 1px solid rgba(255,140,140,0.25);
+  color: #ffdede;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 720px) {
+  .app {
+    height: 100dvh;
+    width: 100%;
+    border-radius: 0;
+  }
+
+  body { padding: 0; }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  .controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .controls .btn,
+  .controls a.btn {
+    width: 100%;
+  }
+
+  .composer-row {
+    grid-template-columns: 1fr;
+  }
+
+  .buttons {
+    flex-direction: row;
+  }
+
+  .buttons .btn { flex: 1; }
+
+  .select,
+  .number-input { min-width: 0; width: 100%; }
+
+  .textarea {
+    min-height: 92px;
+  }
+}

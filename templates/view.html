@@ -6,113 +6,41 @@
     <title>View Only Gallery</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-
-        .top-bar {
-            background: #1e1e1e;
-            padding: 10px;
-            z-index: 100;
-            border-radius: 5px;
-            border: 1px solid #333;
-            margin: auto;
-        }
-
         .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-            max-height: calc(100vh - 180px);
+            max-height: calc(100vh - 280px);
             overflow-y: auto;
-            padding-bottom: 20px;
         }
-        .gallery img {
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-            object-fit: cover;
-            height: 120px;
-        }
-        .lightbox {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .lightbox.show {
-            display: flex !important;
-        }
-        .lightbox img {
-            max-width: 90%;
-            max-height: 80%;
-            display: block;
-            margin: 0 auto;
-            border-radius: 8px;
-            box-shadow: 0 0 28px rgba(0,0,0,0.7);
-        }
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 2.3rem;
-            color: white;
-            background: rgba(0,0,0,0.16);
-            border: none;
-            cursor: pointer;
-            width: 10%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 18px;
-            z-index: 1100;
-            outline: none;
-            opacity: 0.85;
-            transition: background 0.18s, color 0.15s, opacity 0.16s;
-        }
-        .nav-btn:hover, .nav-btn:focus {
-            background: rgba(108,99,255,0.22);
-            color: #b3a6ff;
-            opacity: 1;
-        }
-        .nav-btn.prev { left: 0; }
-        .nav-btn.next { right: 0; }
 
         @media (max-width: 700px) {
-            .nav-btn {
-                font-size: 1.7rem;
-                width: 22px;
-                height: 40px;
-                opacity: 0.5;
-                margin: 0 4px;
+            .gallery {
+                max-height: none;
+                overflow-y: visible;
             }
         }
     </style>
 </head>
 <body>
+    <main class="page-shell">
     <div class="container">
         <div class="top-bar">
-            <h1 style="text-align:center; margin-bottom: 18px;">Image Gallery</h1>
-            <div style="display: flex; justify-content: center;">
-                <a href="{{ url_for('logout') }}" class="btn secondary" style="margin-top:15px;">Logout</a>
+            <h1 class="page-title" style="text-align:center;">Gallery Viewer</h1>
+            <p class="page-subtitle" style="text-align:center;">Browse images in full size with a clean, private view-only experience.</p>
+
+            <div class="actions-row" style="justify-content:center;">
+                <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
             </div>
-            <div style="text-align: center; margin-top: 20px; color: #ccc;">
-                <p>Click on an image to view it in full size.</p>
-                <p>Use the left/right arrows to navigate through images or swip left/right.</p>
-                <p>To download, right-click (PC) or long-press (mobile) the image.</p>
-            </div>
+
+            <p class="helper-text" style="text-align:center; margin-top:8px;">Click an image for full size. Use arrows or swipe left/right.</p>
         </div>
+
         <div class="gallery">
             {% for image in images %}
                 <img src="/images/{{ image }}" alt="{{ image }}" data-index="{{ loop.index0 }}">
             {% endfor %}
         </div>
     </div>
+    </main>
 
-    <!-- Lightbox Modal -->
     <div class="lightbox" id="lightbox">
         <button class="nav-btn prev" onclick="prevImage()">&#10094;</button>
         <img id="lightboxImage" src="">
@@ -120,7 +48,6 @@
     </div>
 
     <script>
-        // Lightbox logic
         const galleryImgs = Array.from(document.querySelectorAll('.gallery img'));
         let currentIndex = 0;
         const lightbox = document.getElementById('lightbox');
@@ -158,7 +85,6 @@
             });
         });
 
-        // Loading spinner logic (if you use it)
         document.addEventListener("DOMContentLoaded", function() {
             const overlay = document.getElementById("loadingOverlay");
             let loaded = 0;
@@ -190,7 +116,6 @@
         });
     </script>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;">
         <div class="spinner"></div>
     </div>

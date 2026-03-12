@@ -6,56 +6,68 @@
   <title>Messages</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    .top-bar {
-      background: #1e1e1e; padding:10px; z-index:100; border-radius:5px; border:1px solid #333; margin:auto;
+    #progressContainer {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      margin-top: 6px;
+      display: none;
+      overflow: hidden;
     }
-    #progressContainer { width:100%; background:#333; border-radius:5px; margin-top:10px; display:none; }
-    #progressBar { width:0%; height:10px; background:#6c63ff; border-radius:5px; transition: width 0.2s; }
+    #progressBar {
+      width: 0%;
+      height: 10px;
+      background: linear-gradient(135deg, #6c63ff, #5fbbe8);
+      transition: width 0.2s;
+    }
     .messages-grid {
-      display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
-      gap:10px; margin-top:20px; max-height: calc(100vh - 180px); overflow-y:auto; padding-bottom:20px;
+      max-height: calc(100vh - 330px);
+      overflow-y: auto;
     }
-    .message-card { background:#171717; border:1px solid #2a2a2a; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; min-height:90px; white-space:pre-wrap; word-wrap:break-word; }
-    .message-meta { font-size:0.85rem; color:#bdbdbd; }
-    .message-text { color:#fff; line-height:1.35; }
-    @media (max-width: 600px) {
-      .top-bar form { width:100% !important; max-width:100vw !important; overflow:hidden; }
+
+    @media (max-width: 700px) {
+      .messages-grid {
+        max-height: none;
+        overflow-y: visible;
+      }
+
+      #msgForm .actions-row {
+        flex-direction: column;
+      }
     }
   </style>
   <script>window.CAN_DELETE = {{ 'true' if can_delete else 'false' }};</script>
 </head>
 <body>
+  <main class="page-shell">
   <div class="container">
 
     <div class="top-bar">
-      <h1 style="text-align:center; margin-bottom:18px;">Messages</h1>
+      <h1 class="page-title" style="text-align:center;">Communication Messaging</h1>
+      <p class="page-subtitle" style="text-align:center;">Private shared message board for your project.</p>
 
-      <form id="msgForm" style="display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:520px; margin:auto;">
+      <form id="msgForm" class="form-stack" style="max-width:680px; margin:16px auto 0;">
         <input type="text" id="author" name="author" placeholder="Your name (optional)">
-        <textarea id="text" name="text" rows="4" placeholder="Write a message..."
-          style="width:100%; padding:10px; border-radius:5px; border:none; background:#2c2c2c; color:#fff;"></textarea>
+        <textarea id="text" name="text" rows="4" placeholder="Write a message..."></textarea>
 
-        <div style="display:flex; gap:10px; width:100%;">
-          <button type="submit" class="btn" style="flex:1; font-size:1.05rem; padding:12px 0; margin:0;">Send</button>
-          <button id="clearBtn" type="button" class="btn secondary" style="width:160px;">Clear (admin)</button>
+        <div class="actions-row" style="margin-top:0; width:100%; justify-content:center;">
+          <button type="submit" class="btn" style="min-width:150px;">Send</button>
+          <button id="clearBtn" type="button" class="btn secondary" {% if not can_delete %}style="display:none;"{% endif %}>Clear (admin)</button>
+          <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
         </div>
 
-        <div id="progressContainer" style="width:100%; margin-top:6px;">
+        <div id="progressContainer">
           <div id="progressBar"></div>
         </div>
       </form>
 
-      <div style="display:flex; justify-content:center;">
-        <a href="{{ url_for('logout') }}" class="btn secondary" style="margin-top:15px;">Logout</a>
-      </div>
-
-      <div style="text-align:center; margin-top:16px; color:#ccc;">
-        <p>Everyone with the passcode can read/post. Newest messages appear first.</p>
-      </div>
+      <p class="helper-text" style="text-align:center; margin-top:10px;">Everyone with the message passcode can read and post. Newest messages appear first.</p>
     </div>
 
     <div class="messages-grid" id="messagesGrid"></div>
   </div>
+  </main>
 
   <div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;">
     <div class="spinner"></div>
@@ -151,12 +163,14 @@
       }
     });
 
-    clearBtn.addEventListener('click', async () => {
-      if (!confirm('Clear all messages? (admin only)')) return;
-      const r = await fetch('/api/messages/clear', { method:'POST' });
-      if (r.ok) loadMessages();
-      else alert('Not authorized or failed.');
-    });
+    if (clearBtn) {
+      clearBtn.addEventListener('click', async () => {
+        if (!confirm('Clear all messages? (admin only)')) return;
+        const r = await fetch('/api/messages/clear', { method:'POST' });
+        if (r.ok) loadMessages();
+        else alert('Not authorized or failed.');
+      });
+    }
 
     function hideOverlay() {
       const overlay = document.getElementById('loadingOverlay');

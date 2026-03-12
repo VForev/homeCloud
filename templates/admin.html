@@ -6,145 +6,52 @@
     <title>Admin Image Gallery</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .top-bar {
-            background: #1e1e1e;
-            padding: 10px;
-            z-index: 100;
-            border-radius: 5px;
-            border: 1px solid #333;
-            margin: auto;
-        }
-        
         .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-            max-height: calc(100vh - 180px);
+            max-height: calc(100vh - 360px);
             overflow-y: auto;
-            padding-bottom: 20px;
         }
+
         .image-card {
-            position: relative;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 0;
         }
-        .image-checkbox {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 22px;
-            height: 22px;
-            z-index: 2;
-            accent-color: #6c63ff;
-        }
-        .gallery img {
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-            object-fit: cover;
-            height: 120px;
-            transition: box-shadow 0.2s;
-        }
+
         .gallery img.selected {
-            box-shadow: 0 0 0 3px #ff3b3b, 0 0 12px #ff3b3b44;
+            box-shadow: 0 0 0 3px rgba(255, 93, 115, 0.8);
         }
+
         #deleteSelectedBtn {
-            margin: 24px auto 0 auto;
-            width: 250px;
-            font-size: 1.06rem;
-            padding: 13px 0;
-            display: block;
-            background: #ff3b3b;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
+            margin: 16px auto 0;
+            min-width: 220px;
         }
+
         #deleteSelectedBtn:disabled {
-            background: #555;
-            color: #ccc;
-            cursor: not-allowed;
+            opacity: 0.5;
         }
-        #deleteSelectedBtn:hover:enabled {
-            background: #d32f2f;
-        }
-        .lightbox {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .lightbox.show {
-            display: flex !important;
-        }
-        .lightbox img {
-            max-width: 90%;
-            max-height: 80%;
-            display: block;
-            margin: 0 auto;
-            border-radius: 8px;
-            box-shadow: 0 0 28px rgba(0,0,0,0.7);
-        }
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 2.3rem;
-            color: white;
-            background: rgba(0,0,0,0.16);
-            border: none;
-            cursor: pointer;
-            width: 10%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 18px;
-            z-index: 1100;
-            outline: none;
-            opacity: 0.85;
-            transition: background 0.18s, color 0.15s, opacity 0.16s;
-        }
-        .nav-btn:hover, .nav-btn:focus {
-            background: rgba(108,99,255,0.22);
-            color: #b3a6ff;
-            opacity: 1;
-        }
-        .nav-btn.prev { left: 0; }
-        .nav-btn.next { right: 0; }
 
         @media (max-width: 700px) {
-            .nav-btn {
-                font-size: 1.7rem;
-                width: 22px;
-                height: 40px;
-                opacity: 0.5;
-                margin: 0 4px;
+            .gallery {
+                max-height: none;
+                overflow-y: visible;
             }
         }
     </style>
 </head>
 <body>
+    <main class="page-shell">
     <div class="container">
         <div class="top-bar">
-            <h1 style="text-align:center; margin-bottom: 18px;">Admin Image Gallery</h1>
-            <div style="display: flex; justify-content: center;">
-                <a href="{{ url_for('logout') }}" class="btn secondary" style="margin-top:15px;">Logout</a>
-            </div>
-            <div style="text-align: center; margin-top: 20px; color: #ccc;">
-                <p>Click on an image to view it in full size.</p>
-                <p>Select multiple images using checkboxes, then click "Delete Selected" to remove them.</p>
-            </div>
-        </div>
+            <h1 class="page-title" style="text-align:center;">Admin Gallery</h1>
+            <p class="page-subtitle" style="text-align:center;">Select multiple images and delete in one action.</p>
 
-        <button id="deleteSelectedBtn" disabled>Delete Selected</button>
+            <div class="actions-row" style="justify-content:center;">
+                <a href="{{ url_for('logout') }}" class="btn secondary">Logout</a>
+                <button id="deleteSelectedBtn" class="btn danger" disabled>Delete Selected</button>
+            </div>
+
+            <p class="helper-text" style="text-align:center; margin-top:8px;">Click image to preview. Use checkboxes to mark images for deletion.</p>
+        </div>
 
         <div class="gallery">
             {% for image in images %}
@@ -155,8 +62,8 @@
             {% endfor %}
         </div>
     </div>
+    </main>
 
-    <!-- Lightbox Modal -->
     <div class="lightbox" id="lightbox">
         <button class="nav-btn prev" onclick="prevImage()">&#10094;</button>
         <img id="lightboxImage" src="">
@@ -164,7 +71,6 @@
     </div>
 
     <script>
-        // Lightbox logic (uses .show class)
         const galleryImgs = Array.from(document.querySelectorAll('.gallery img'));
         let currentIndex = 0;
         const lightbox = document.getElementById('lightbox');
@@ -202,7 +108,6 @@
             if (endX - startX > 50) prevImage();
         });
 
-        // Only open lightbox if not clicking the checkbox
         document.querySelectorAll('.image-card').forEach((card, idx) => {
             card.querySelector('img').addEventListener('click', (e) => {
                 if (e.target === card.querySelector('.image-checkbox')) return;
@@ -210,7 +115,6 @@
             });
         });
 
-        // Multi-select delete logic
         const checkboxes = document.querySelectorAll('.image-checkbox');
         const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
@@ -263,7 +167,6 @@
             });
         });
 
-        // Loading spinner logic (optional: copy your existing spinner code here if you use one)
         document.addEventListener("DOMContentLoaded", function() {
             const overlay = document.getElementById("loadingOverlay");
             let loaded = 0;
@@ -295,7 +198,6 @@
         });
     </script>
 
-    <!-- Loading Overlay (if you use it elsewhere, keep for consistency) -->
     <div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;">
         <div class="spinner"></div>
     </div>
