@@ -242,7 +242,10 @@ function renderModels() {
   if (state.models.includes(current)) {
     el.model.value = current;
   } else {
-    const preferred = state.models.find((name) => name.includes('qwen3-vl')) || state.models[0];
+    const preferred = state.models.find((name) => name.toLowerCase().includes('gpt-oss'))
+      || state.models.find((name) => name.toLowerCase().includes('gpt'))
+      || state.models.find((name) => name.toLowerCase().includes('qwen3-vl'))
+      || state.models[0];
     el.model.value = preferred;
   }
 }
