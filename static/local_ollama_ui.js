@@ -13,6 +13,9 @@ const state = {
 const el = {
   status: document.getElementById('status'),
   chatMeta: document.getElementById('chatMeta'),
+  settingsMenu: document.getElementById('settingsMenu'),
+  settingsToggle: document.getElementById('settingsToggle'),
+  settingsPopover: document.getElementById('settingsPopover'),
   model: document.getElementById('model'),
   temperature: document.getElementById('temperature'),
   numPredict: document.getElementById('numPredict'),
@@ -30,6 +33,23 @@ const el = {
   removeImageBtn: document.getElementById('removeImageBtn'),
   imagePreview: document.getElementById('imagePreview')
 };
+
+function closeSettingsMenu() {
+  if (!el.settingsMenu || !el.settingsMenu.open) return;
+  el.settingsMenu.open = false;
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+}
+
+function toggleSettingsMenu() {
+  if (!el.settingsMenu) return;
+  const shouldOpen = !el.settingsMenu.open;
+  el.settingsMenu.open = shouldOpen;
+  if (!shouldOpen && document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+}
 
 function setStatus(text, tone = 'neutral') {
   el.status.textContent = text;
@@ -396,6 +416,31 @@ el.prompt.addEventListener('keydown', (event) => {
 });
 
 el.prompt.addEventListener('input', updatePromptCount);
+
+if (el.settingsToggle) {
+  el.settingsToggle.addEventListener('click', (event) => {
+    event.preventDefault();
+    toggleSettingsMenu();
+  });
+}
+
+document.addEventListener('pointerdown', (event) => {
+  if (!el.settingsMenu || !el.settingsMenu.open) return;
+  const target = event.target;
+  if (!(target instanceof Node)) return;
+  if (!el.settingsMenu.contains(target)) {
+    closeSettingsMenu();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeSettingsMenu();
+  }
+});
+
+el.chat.addEventListener('pointerdown', closeSettingsMenu);
+el.prompt.addEventListener('focus', closeSettingsMenu);
 
 el.refreshBtn.addEventListener('click', loadModels);
 
