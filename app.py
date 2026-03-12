@@ -4,6 +4,7 @@ import time
 import uuid
 import threading
 import mimetypes
+import shutil
 from flask import (
     Flask, render_template, render_template_string, request,
     redirect, url_for, session, send_from_directory, jsonify, flash
@@ -125,6 +126,20 @@ def format_file_size(size_bytes):
             return f"{value:.1f} {unit}"
         value /= 1024
     return f"{int(size_bytes)} B"
+
+
+def get_machine_storage_status(target_path):
+    try:
+        usage = shutil.disk_usage(target_path)
+    except (FileNotFoundError, OSError):
+        return None
+
+    free_percent = round((usage.free / usage.total) * 100, 1) if usage.total else 0.0
+    return {
+        'free_label': format_file_size(usage.free),
+        'total_label': format_file_size(usage.total),
+        'free_percent': free_percent,
+    }
 
 
 def clean_filename(raw_filename):
@@ -312,7 +327,13 @@ def admin():
     items = get_storage_items_sorted_by_date(app.config['UPLOAD_FOLDER'])
     media_items = [item for item in items if item['type'] in ('image', 'video')]
     file_items = [item for item in items if item['type'] == 'file']
-    return render_template('admin.html', media_items=media_items, file_items=file_items)
+    storage_status = get_machine_storage_status(os.path.abspath(app.config['UPLOAD_FOLDER']))
+    return render_template(
+        'admin.html',
+        media_items=media_items,
+        file_items=file_items,
+        storage_status=storage_status,
+    )
 
 @app.route('/view')
 def view_gallery():
