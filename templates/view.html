@@ -34,6 +34,19 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        .media-select {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 22px;
+            height: 22px;
+            accent-color: #8fa8ff;
+            z-index: 4;
+            display: none;
+            cursor: pointer;
         }
 
         .media-thumb {
@@ -105,6 +118,20 @@
             margin-top: 10px;
             color: var(--muted);
         }
+
+        .mobile-media-tools {
+            display: none;
+            margin-top: 10px;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .media-mobile-note {
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
     </style>
 </head>
 <body>
@@ -125,10 +152,20 @@
                     <h2>Media</h2>
                     <span class="helper-text">{{ media_items|length }} item(s)</span>
                 </div>
+                <div id="mobileMediaTools" class="mobile-media-tools">
+                    <button id="saveSelectedMediaBtn" class="btn secondary" type="button" disabled>Save Selected Media</button>
+                    <span class="media-mobile-note">iOS: uses Share sheet to save to Photos.</span>
+                </div>
                 {% if media_items %}
                 <div class="media-grid">
                     {% for item in media_items %}
-                    <article class="media-card">
+                    <article
+                        class="media-card"
+                        data-media-url="{{ url_for('uploaded_file', filename=item.name) }}"
+                        data-media-name="{{ item.name }}"
+                        data-media-type="{{ item.type }}"
+                    >
+                        <input type="checkbox" class="media-select" aria-label="Select {{ item.name }} for Save Selected">
                         {% if item.type == 'image' %}
                         <img
                             src="{{ url_for('uploaded_file', filename=item.name) }}"
@@ -145,7 +182,7 @@
                             <div class="media-name">{{ item.name }}</div>
                             <div class="meta-row">
                                 <span>{{ item.size_label }}</span>
-                                <a class="btn secondary" href="{{ url_for('download_file', filename=item.name) }}">Download</a>
+                                <a class="btn secondary media-download-btn" href="{{ url_for('download_file', filename=item.name) }}">Download</a>
                             </div>
                         </div>
                     </article>
@@ -188,9 +225,74 @@
 
     <script>
         const previewImages = Array.from(document.querySelectorAll('.preview-image'));
+        const mediaSelectors = Array.from(document.querySelectorAll('.media-select'));
+        const mediaDownloadButtons = Array.from(document.querySelectorAll('.media-download-btn'));
+        const saveSelectedMediaBtn = document.getElementById('saveSelectedMediaBtn');
+        const mobileMediaTools = document.getElementById('mobileMediaTools');
         const lightbox = document.getElementById('lightbox');
         const lightboxImage = document.getElementById('lightboxImage');
         let currentIndex = 0;
+
+        function isLikelyIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        const mobileQuery = window.matchMedia('(max-width: 860px)');
+        const canShareFiles = !!(navigator.share && navigator.canShare && window.File);
+
+        function getSelectedMediaCards() {
+            return mediaSelectors
+                .filter((checkbox) => checkbox.checked)
+                .map((checkbox) => checkbox.closest('.media-card'))
+                .filter(Boolean);
+        }
+
+        function updateSaveSelectedState() {
+            if (!saveSelectedMediaBtn) return;
+            saveSelectedMediaBtn.disabled = getSelectedMediaCards().length === 0;
+        }
+
+        function updateMobileToolsVisibility() {
+            if (!mobileMediaTools) return;
+            const show = mobileQuery.matches && isLikelyIOS() && mediaSelectors.length > 0;
+            mobileMediaTools.style.display = show ? 'flex' : 'none';
+            mediaSelectors.forEach((checkbox) => {
+                checkbox.style.display = show ? 'block' : 'none';
+                if (!show) checkbox.checked = false;
+            });
+            mediaDownloadButtons.forEach((button) => {
+                button.style.display = show ? 'none' : '';
+            });
+            updateSaveSelectedState();
+        }
+
+        async function fetchMediaFile(card) {
+            const mediaUrl = card.dataset.mediaUrl;
+            const mediaName = card.dataset.mediaName || 'media';
+            const mediaType = card.dataset.mediaType || '';
+            const response = await fetch(mediaUrl, { cache: 'no-store' });
+            if (!response.ok) throw new Error('Fetch failed');
+            const blob = await response.blob();
+            const fallbackType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+            return new File([blob], mediaName, { type: blob.type || fallbackType });
+        }
+
+        async function shareFilesWithIOS(files) {
+            if (!navigator.canShare) return false;
+            if (navigator.canShare({ files })) {
+                await navigator.share({ files, title: 'HomeCloud Media' });
+                return true;
+            }
+
+            for (const file of files) {
+                if (!navigator.canShare({ files: [file] })) {
+                    return false;
+                }
+                await navigator.share({ files: [file], title: file.name });
+            }
+            return true;
+        }
 
         function openLightbox(index) {
             if (!previewImages.length) return;
@@ -221,6 +323,51 @@
             });
         });
 
+        mediaSelectors.forEach((checkbox) => {
+            checkbox.addEventListener('change', updateSaveSelectedState);
+        });
+
+        if (mobileQuery.addEventListener) {
+            mobileQuery.addEventListener('change', updateMobileToolsVisibility);
+        } else if (mobileQuery.addListener) {
+            mobileQuery.addListener(updateMobileToolsVisibility);
+        }
+
+        if (saveSelectedMediaBtn) {
+            saveSelectedMediaBtn.addEventListener('click', async function() {
+                if (!isLikelyIOS()) {
+                    alert('Save Selected Media is available on iOS mobile only.');
+                    return;
+                }
+                if (!canShareFiles) {
+                    alert('Your browser does not support iOS Share with files. Long-press an image or video and tap Save to Photos.');
+                    return;
+                }
+
+                const selectedCards = getSelectedMediaCards();
+                if (!selectedCards.length) return;
+
+                saveSelectedMediaBtn.disabled = true;
+                try {
+                    const files = await Promise.all(selectedCards.map(fetchMediaFile));
+                    const shared = await shareFilesWithIOS(files);
+                    if (!shared) {
+                        alert('Could not share selected media files on this iOS browser version.');
+                        return;
+                    }
+                    mediaSelectors.forEach((checkbox) => {
+                        checkbox.checked = false;
+                    });
+                } catch (error) {
+                    if (error && error.name !== 'AbortError') {
+                        alert('Could not save selected media. Try again or long-press to Save to Photos.');
+                    }
+                } finally {
+                    updateSaveSelectedState();
+                }
+            });
+        }
+
         lightbox.addEventListener('click', function(event) {
             if (event.target === lightbox) closeLightbox();
         });
@@ -234,6 +381,8 @@
             if (touchStartX - touchEndX > 50) nextImage();
             if (touchEndX - touchStartX > 50) prevImage();
         });
+
+        updateMobileToolsVisibility();
     </script>
 </body>
 </html>
