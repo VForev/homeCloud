@@ -1,6 +1,7 @@
 const state = {
   messages: [],
   models: [],
+  selectedModel: null,
   imageBase64: null,
   imageMime: null,
   imageName: null,
@@ -9,6 +10,9 @@ const state = {
   imageHeight: null,
   busy: false
 };
+
+const CHAT_SESSION_STORAGE_KEY = 'homecloud:ai:chat:session:v1';
+const MAX_PERSISTED_MESSAGES = 120;
 
 const el = {
   status: document.getElementById('status'),
@@ -33,6 +37,72 @@ const el = {
   removeImageBtn: document.getElementById('removeImageBtn'),
   imagePreview: document.getElementById('imagePreview')
 };
+
+function persistChatSession() {
+  if (!window.sessionStorage) return;
+
+  const payload = {
+    version: 1,
+    messages: state.messages
+      .slice(-MAX_PERSISTED_MESSAGES)
+      .filter((message) => ['user', 'assistant', 'system'].includes(message.role))
+      .map((message) => ({
+        role: message.role,
+        content: String(message.content ?? '')
+      })),
+    model: el.model.value || state.selectedModel || '',
+    temperature: String(el.temperature.value || ''),
+    numPredict: String(el.numPredict.value || '')
+  };
+
+  try {
+    window.sessionStorage.setItem(CHAT_SESSION_STORAGE_KEY, JSON.stringify(payload));
+  } catch (_) {
+    // Ignore session storage quota/access errors.
+  }
+}
+
+function restoreChatSession() {
+  if (!window.sessionStorage) return;
+
+  let raw = null;
+  try {
+    raw = window.sessionStorage.getItem(CHAT_SESSION_STORAGE_KEY);
+  } catch (_) {
+    return;
+  }
+  if (!raw) return;
+
+  try {
+    const payload = JSON.parse(raw);
+    if (!payload || typeof payload !== 'object') return;
+
+    const rawMessages = Array.isArray(payload.messages) ? payload.messages : [];
+    const restoredMessages = rawMessages
+      .filter((message) => message && ['user', 'assistant', 'system'].includes(message.role))
+      .map((message) => ({
+        role: message.role,
+        content: String(message.content ?? '')
+      }));
+    state.messages = restoredMessages.slice(-MAX_PERSISTED_MESSAGES);
+
+    if (typeof payload.model === 'string' && payload.model.trim()) {
+      state.selectedModel = payload.model.trim();
+    }
+
+    const parsedTemp = Number(payload.temperature);
+    if (Number.isFinite(parsedTemp) && parsedTemp >= 0 && parsedTemp <= 2) {
+      el.temperature.value = String(parsedTemp);
+    }
+
+    const parsedNumPredict = Number(payload.numPredict);
+    if (Number.isFinite(parsedNumPredict) && parsedNumPredict >= 64 && parsedNumPredict <= 4096) {
+      el.numPredict.value = String(Math.round(parsedNumPredict));
+    }
+  } catch (_) {
+    // Ignore malformed data.
+  }
+}
 
 function closeSettingsMenu() {
   if (!el.settingsMenu || !el.settingsMenu.classList.contains('open')) return;
@@ -207,6 +277,7 @@ function renderMessages() {
   if (!state.messages.length) {
     el.chat.appendChild(el.empty);
     updateChatMeta();
+    persistChatSession();
     return;
   }
 
@@ -238,6 +309,7 @@ function renderMessages() {
 
   updateChatMeta();
   el.chat.scrollTop = el.chat.scrollHeight;
+  persistChatSession();
 }
 
 function renderImageInfo() {
@@ -254,7 +326,7 @@ function renderImageInfo() {
 }
 
 function renderModels() {
-  const current = el.model.value;
+  const current = el.model.value || state.selectedModel || '';
   el.model.innerHTML = '';
 
   if (!state.models.length) {
@@ -281,6 +353,8 @@ function renderModels() {
       || state.models[0];
     el.model.value = preferred;
   }
+  state.selectedModel = el.model.value || state.selectedModel;
+  persistChatSession();
 }
 
 async function loadModels() {
@@ -430,6 +504,15 @@ el.prompt.addEventListener('keydown', (event) => {
 
 el.prompt.addEventListener('input', updatePromptCount);
 
+el.model.addEventListener('change', () => {
+  state.selectedModel = el.model.value;
+  persistChatSession();
+});
+el.temperature.addEventListener('change', persistChatSession);
+el.temperature.addEventListener('input', persistChatSession);
+el.numPredict.addEventListener('change', persistChatSession);
+el.numPredict.addEventListener('input', persistChatSession);
+
 if (el.settingsToggle) {
   el.settingsToggle.setAttribute('aria-expanded', 'false');
 }
@@ -501,6 +584,7 @@ el.removeImageBtn.addEventListener('click', () => {
   setStatus('Image removed', 'ok');
 });
 
+restoreChatSession();
 renderMessages();
 renderImageInfo();
 updatePromptCount();
